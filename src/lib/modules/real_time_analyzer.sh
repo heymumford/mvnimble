@@ -569,12 +569,20 @@ analyze_build_failure() {
   
   echo -e "\n${COLOR_BOLD}${COLOR_BLUE}=== Build Failure Analysis ===${COLOR_RESET}"
 
+  # Create parent directories if they don't exist
+  mkdir -p "$(dirname "$output_report")"
+
   # Validate inputs
+  if [ -z "$build_log" ]; then
+    echo -e "${COLOR_YELLOW}No build log provided${COLOR_RESET}"
+    return 1
+  fi
+
   if [ ! -f "$build_log" ]; then
-    echo -e "${COLOR_YELLOW}Build log file not found: $build_log${COLOR_RESET}"
+    echo -e "${COLOR_YELLOW}Build log file doesn't exist: $build_log${COLOR_RESET}"
     # Generate basic empty report
     {
-      echo "# Build Failure Analysis Report"
+      echo "# Enhanced Build Failure Analysis Report"
       echo "Generated: $(date '+%Y-%m-%d %H:%M:%S')"
       echo ""
       echo "No build log available for analysis."
@@ -584,6 +592,23 @@ analyze_build_failure() {
     return 1
   fi
   
+  # Validate metrics directory
+  if [ -z "$metrics_dir" ]; then
+    echo -e "${COLOR_YELLOW}No metrics directory provided${COLOR_RESET}"
+    return 1
+  fi
+
+  if [ ! -d "$metrics_dir" ]; then
+    echo -e "${COLOR_YELLOW}Metrics directory doesn't exist: $metrics_dir${COLOR_RESET}"
+    return 1
+  fi
+
+  # Validate output report parameter
+  if [ -z "$output_report" ]; then
+    echo -e "${COLOR_YELLOW}No output report path provided${COLOR_RESET}"
+    return 1
+  fi
+
   # Extract build information
   local build_timestamp=$(head -n 20 "$build_log" | grep -o "Finished at: [0-9-]\+ [0-9:]\+" | head -1 | sed 's/Finished at: //')
   if [ -z "$build_timestamp" ]; then
@@ -622,6 +647,8 @@ analyze_build_failure() {
   # Categorize errors
   local compilation_errors=$(grep -c "COMPILATION ERROR" "$build_log" || echo 0)
   local dependency_errors=$(grep -c "dependencies.*not found\|package.*does not exist\|Could not resolve dependencies\|Cannot resolve reference\|could not be resolved" "$build_log" || echo 0)
+  local symbol_errors=$(grep -c "cannot find symbol\|symbol.*not found" "$build_log" || echo 0)
+  local access_errors=$(grep -c "has private access\|is not visible\|protected access" "$build_log" || echo 0)
   local test_failures=$(grep -o "Tests run:.*Failures: [0-9]*" "$build_log" | grep -o "Failures: [0-9]*" | grep -o "[0-9]*" | tr -d '\n' | sed 's/^$/0/')
   local test_errors=$(grep -o "Tests run:.*Errors: [0-9]*" "$build_log" | grep -o "Errors: [0-9]*" | grep -o "[0-9]*" | tr -d '\n' | sed 's/^$/0/')
   local plugin_errors=$(grep -c "Plugin.*not found\|Error executing plugin\|Plugin.*execution not covered by lifecycle" "$build_log" || echo 0)
@@ -708,7 +735,7 @@ analyze_build_failure() {
   
   # Write the analysis report
   {
-    echo "# Build Failure Analysis Report"
+    echo "# Enhanced Build Failure Analysis Report"
     echo "Generated: $(date '+%Y-%m-%d %H:%M:%S')"
     echo ""
     
@@ -716,16 +743,23 @@ analyze_build_failure() {
     echo ""
     echo "* **Project**: $project_name"
     echo "* **Build Time**: $build_timestamp"
-    echo "* **Error Count**: $error_count"
+    echo "* **Total Errors**: $error_count"
     echo "* **Warning Count**: $warning_count"
     echo "* **Primary Failure Reason**: $primary_reason"
     echo "* **Failed Phase**: $failure_phase"
     echo ""
     
+    echo "## Error Categories"
+    echo ""
+    echo "The following error categories were detected:"
+    echo ""
+    
     echo "## Error Breakdown"
     echo ""
     echo "* **Compilation Errors**: $compilation_errors"
-    echo "* **Dependency Issues**: $dependency_errors"
+    echo "* **Dependency Errors**: $dependency_errors"
+    echo "* **Symbol Errors**: $symbol_errors"
+    echo "* **Access Violations**: $access_errors"
     echo "* **Test Failures**: $test_failures"
     echo "* **Test Errors**: $test_errors"
     echo "* **Plugin Errors**: $plugin_errors"
@@ -742,7 +776,7 @@ analyze_build_failure() {
     fi
     
     if [ -n "$dependency_messages" ]; then
-      echo "## Dependency Issues"
+      echo "## Dependency Errors"
       echo ""
       echo '```'
       echo "$dependency_messages"
@@ -782,6 +816,12 @@ analyze_build_failure() {
     done
     echo ""
     
+    echo "## Summary"
+    echo ""
+    echo "* **Key Findings**: ${primary_reason:-Unknown Build Failure}"
+    echo "* **Required Actions**: Fix the identified errors and retry the build"
+    echo ""
+    
     echo "## Next Steps"
     echo ""
     echo "1. Address the primary failure reason: $primary_reason"
@@ -818,13 +858,198 @@ function enhanced_build_failure_analysis() {
     # Preserve original report
     cp "$output_report" "$report_temp"
     
+    # Get error categories
+    local error_categories=""
+    if [ -f "$build_log" ]; then
+      error_categories=$(categorize_build_errors "$build_log")
+    fi
+    
     # Add enhanced analysis sections
     {
       echo ""
+      echo "## Error Categories"
+      echo ""
+      echo "Detailed breakdown of error types detected in the build log:"
+      echo ""
+      if [ -n "$error_categories" ]; then
+        # Extract counts from categorization
+        local dependency_errors=$(echo "$error_categories" | grep "DEPENDENCY_ERRORS=" | cut -d= -f2)
+        local symbol_errors=$(echo "$error_categories" | grep "SYMBOL_ERRORS=" | cut -d= -f2)
+        local access_errors=$(echo "$error_categories" | grep "ACCESS_ERRORS=" | cut -d= -f2)
+        local type_errors=$(echo "$error_categories" | grep "TYPE_ERRORS=" | cut -d= -f2)
+        local context_errors=$(echo "$error_categories" | grep "CONTEXT_ERRORS=" | cut -d= -f2)
+        local initialization_errors=$(echo "$error_categories" | grep "INITIALIZATION_ERRORS=" | cut -d= -f2)
+        local memory_errors=$(echo "$error_categories" | grep "MEMORY_ERRORS=" | cut -d= -f2)
+        local test_failures=$(echo "$error_categories" | grep "TEST_FAILURES=" | cut -d= -f2)
+        
+        echo "* **Dependency Errors**: $dependency_errors (package does not exist, unresolved imports)"
+        echo "* **Symbol Errors**: $symbol_errors (cannot find symbol, undefined references)"
+        echo "* **Access Violations**: $access_errors (attempting to access private/protected members)"
+        echo "* **Type Errors**: $type_errors (incompatible types, wrong method arguments)"
+        echo "* **Context Errors**: $context_errors (static/non-static reference issues)"
+        echo "* **Initialization Errors**: $initialization_errors (variables not initialized)"
+        echo "* **Memory Issues**: $memory_errors (OutOfMemoryError, GC overhead exceeded)"
+        echo "* **Test Failures**: $test_failures (assertion failures and exceptions in tests)"
+      else
+        echo "* No detailed error categorization available"
+      fi
+      echo ""
+      
+      # Add build phase analysis
+      echo "## Build Phase Analysis"
+      echo ""
+      echo "Analysis of errors by build phase:"
+      echo ""
+      
+      # Get build phase detection
+      local build_phases=""
+      if [ -f "$build_log" ]; then
+        build_phases=$(detect_build_phase "$build_log")
+      fi
+      
+      # Get error correlation with phases
+      local phase_errors=""
+      if [ -f "$build_log" ]; then
+        phase_errors=$(correlate_errors_with_phases "$build_log" 2>/dev/null || echo "")
+      fi
+      
+      if [ -n "$build_phases" ] && [ -n "$phase_errors" ]; then
+        # Extract phase information
+        local validation_phase=$(echo "$build_phases" | grep "VALIDATION_PHASE=" | cut -d= -f2)
+        local compilation_phase=$(echo "$build_phases" | grep "COMPILATION_PHASE=" | cut -d= -f2)
+        local test_compilation_phase=$(echo "$build_phases" | grep "TEST_COMPILATION_PHASE=" | cut -d= -f2)
+        local test_execution_phase=$(echo "$build_phases" | grep "TEST_EXECUTION_PHASE=" | cut -d= -f2)
+        local packaging_phase=$(echo "$build_phases" | grep "PACKAGING_PHASE=" | cut -d= -f2)
+        
+        # Extract error counts by phase
+        local validation_errors=$(echo "$phase_errors" | grep "VALIDATION_ERRORS=" | cut -d= -f2)
+        local compilation_errors=$(echo "$phase_errors" | grep "COMPILATION_ERRORS=" | cut -d= -f2)
+        local test_compilation_errors=$(echo "$phase_errors" | grep "TEST_COMPILATION_ERRORS=" | cut -d= -f2)
+        local test_execution_errors=$(echo "$phase_errors" | grep "TEST_EXECUTION_ERRORS=" | cut -d= -f2)
+        
+        echo "### Build Phases Execution"
+        echo ""
+        echo "* **Validation Phase**: $validation_phase"
+        echo "* **Compilation Phase**: $compilation_phase"
+        echo "* **Test Compilation Phase**: $test_compilation_phase"
+        echo "* **Test Execution Phase**: $test_execution_phase"
+        echo "* **Packaging Phase**: $packaging_phase"
+        echo ""
+        
+        echo "### Errors by Phase"
+        echo ""
+        echo "* **Validation Errors**: $validation_errors (dependency convergence, enforcer rules)"
+        echo "* **Compilation Errors**: $compilation_errors (main source compilation)"
+        echo "* **Test Compilation Errors**: $test_compilation_errors (test source compilation)"
+        echo "* **Test Execution Errors**: $test_execution_errors (test failures and errors)"
+        echo ""
+        
+        # Determine the most problematic phase
+        local max_errors=0
+        local problem_phase=""
+        
+        if [ "$validation_errors" -gt "$max_errors" ]; then
+          max_errors=$validation_errors
+          problem_phase="Validation"
+        fi
+        if [ "$compilation_errors" -gt "$max_errors" ]; then
+          max_errors=$compilation_errors
+          problem_phase="Compilation"
+        fi
+        if [ "$test_compilation_errors" -gt "$max_errors" ]; then
+          max_errors=$test_compilation_errors
+          problem_phase="Test Compilation"
+        fi
+        if [ "$test_execution_errors" -gt "$max_errors" ]; then
+          max_errors=$test_execution_errors
+          problem_phase="Test Execution"
+        fi
+        
+        if [ -n "$problem_phase" ]; then
+          echo "### Most Problematic Phase: $problem_phase"
+          echo ""
+          echo "The $problem_phase phase has the highest error count with $max_errors errors."
+          echo "Focus your attention on fixing issues in this phase first."
+          echo ""
+        fi
+      else
+        echo "* No detailed build phase analysis available"
+        echo ""
+      fi
+      
       echo "## Enhanced Analysis"
       echo ""
       echo "This section contains advanced diagnostic information based on additional metrics and patterns."
       echo ""
+      
+      # Add Resource Correlation section
+      echo "## Summary"
+      echo ""
+      echo "### Key Findings"
+      echo ""
+      echo "* **Primary Issue**: $primary_reason"
+      echo "* **Failed Build Phase**: $failure_phase"
+      echo "* **Total Errors**: $error_count"
+      
+      # Add summary of error types
+      if [ "$dependency_errors" -gt 0 ]; then
+        echo "* **Dependency Issues**: Found $dependency_errors errors related to missing or incompatible dependencies"
+      fi
+      
+      if [ "$compilation_errors" -gt 0 ] || [ "$symbol_errors" -gt 0 ] || [ "$access_errors" -gt 0 ]; then
+        echo "* **Compilation Issues**: Found errors related to code compilation"
+      fi
+      
+      if [ "$memory_errors" -gt 0 ]; then
+        echo "* **Memory Issues**: Detected memory-related problems that may require JVM tuning"
+      fi
+      
+      if [ "$test_failures" -gt 0 ] || [ "$test_errors" -gt 0 ]; then
+        echo "* **Test Failures**: Found $((test_failures + test_errors)) test failures or errors"
+      fi
+      
+      echo ""
+      echo "## Resource Correlation"
+      echo ""
+      echo "Analysis of how resource usage correlates with build failures:"
+      echo ""
+
+      # Extract metrics information if available
+      if [ -f "${metrics_dir}/system.csv" ] && [ $(wc -l < "${metrics_dir}/system.csv") -gt 1 ]; then
+        # Get basic system metrics
+        local peak_cpu=$(tail -n +2 "${metrics_dir}/system.csv" | cut -d, -f2 | sort -nr | head -1)
+        local peak_memory=$(tail -n +2 "${metrics_dir}/system.csv" | cut -d, -f3 | sort -nr | head -1)
+        local total_mem=$(get_total_memory_mb 2>/dev/null || echo 8192)
+        
+        echo "### System Resource Peaks"
+        echo ""
+        echo "* **Peak CPU Usage**: ${peak_cpu}%"
+        echo "* **Peak Memory Usage**: ${peak_memory}MB"
+        echo "* **Memory Utilization**: $((peak_memory * 100 / total_mem))% of available memory"
+        echo ""
+        
+        # Determine if there are resource bottlenecks
+        if [ "$peak_cpu" -gt 80 ]; then
+          echo "### CPU Bottleneck Detected"
+          echo ""
+          echo "* CPU utilization exceeded 80%, indicating CPU bound processes"
+          echo "* This may impact build performance, especially during compilation phases"
+          echo "* Consider reducing parallel execution with -T 1C or -T 1"
+          echo ""
+        fi
+        
+        if [ "$peak_memory" -gt $((total_mem * 80 / 100)) ]; then
+          echo "### Memory Pressure Detected"
+          echo ""
+          echo "* Memory utilization exceeded 80% of available system memory"
+          echo "* This may lead to swapping, GC pressure, or out-of-memory errors"
+          echo "* Consider increasing heap size with MAVEN_OPTS=\"-Xmx${total_mem}m\""
+          echo ""
+        fi
+      else
+        echo "* No detailed resource metrics available for correlation analysis"
+        echo ""
+      fi
       
       # Add time-based correlation analysis if we have timestamps
       if grep -q "timestamp" "${metrics_dir}/system.csv" 2>/dev/null; then
@@ -1076,7 +1301,7 @@ generate_enhanced_build_recommendations() {
     fi
     
     if [ ${#memory_recommendations[@]} -gt 0 ]; then
-      echo "## Memory Optimizations"
+      echo "## Memory Recommendations"
       echo ""
       for recommendation in "${memory_recommendations[@]}"; do
         echo "$recommendation"
@@ -1084,23 +1309,34 @@ generate_enhanced_build_recommendations() {
       echo ""
     fi
     
+    # Always include the Test Recommendations section for consistency
+    echo "## Test Recommendations"
+    echo ""
     if [ ${#test_recommendations[@]} -gt 0 ]; then
-      echo "## Test Execution Optimizations"
-      echo ""
       for recommendation in "${test_recommendations[@]}"; do
         echo "$recommendation"
       done
-      echo ""
+    else
+      echo "* **No test-specific recommendations** at this time"
     fi
+    echo ""
     
     if [ ${#dependency_recommendations[@]} -gt 0 ]; then
-      echo "## Dependency Management"
+      echo "## Dependency Recommendations"
       echo ""
       for recommendation in "${dependency_recommendations[@]}"; do
         echo "$recommendation"
       done
       echo ""
     fi
+    
+    # Always include Build Infrastructure Recommendations for consistency
+    echo "## Build Infrastructure Recommendations"
+    echo ""
+    echo "* **CI Server Configuration**: Ensure your CI server has enough resources allocated for builds"
+    echo "* **Build Caching**: Consider using a build cache service to speed up CI builds"
+    echo "* **Artifact Repository**: Use a proper artifact repository for your dependencies"
+    echo ""
     
     echo "## Maven Configuration Examples"
     echo ""
@@ -2015,6 +2251,353 @@ The following build phases were analyzed for resource correlation:
   } > "$correlation_report"
   
   echo -e "${COLOR_GREEN}Resource correlation analysis report generated: ${correlation_report}${COLOR_RESET}"
+}
+
+# Categorize build errors into specific types for detailed analysis
+categorize_build_errors() {
+  local build_log="$1"
+  
+  # Validate input
+  if [ -z "$build_log" ] || [ ! -f "$build_log" ]; then
+    echo "DEPENDENCY_ERRORS=0"
+    echo "SYMBOL_ERRORS=0"
+    echo "ACCESS_ERRORS=0"
+    echo "TYPE_ERRORS=0"
+    echo "CONTEXT_ERRORS=0"
+    echo "INITIALIZATION_ERRORS=0"
+    echo "MEMORY_ERRORS=0"
+    echo "TEST_FAILURES=0"
+    return 1
+  fi
+  
+  # Count dependency-related errors
+  local dependency_errors=$(grep -c "package.*does not exist\|Could not resolve dependencies\|Cannot resolve reference\|could not be resolved" "$build_log" || echo 0)
+  
+  # Count symbol errors
+  local symbol_errors=$(grep -c "cannot find symbol\|symbol.*not found" "$build_log" || echo 0)
+  
+  # Count access violations
+  local access_errors=$(grep -c "has private access\|is not visible\|protected access" "$build_log" || echo 0)
+  
+  # Count type errors
+  local type_errors=$(grep -c "incompatible types\|inconvertible types\|cannot be converted\|no suitable method" "$build_log" || echo 0)
+  
+  # Count context errors
+  local context_errors=$(grep -c "non-static.*referenced from static\|static.*referenced from non-static\|non-static variable.*cannot be referenced\|non-static method cannot be referenced from" "$build_log" || echo 0)
+  
+  # Count initialization errors
+  local initialization_errors=$(grep -c "might not have been initialized\|variable.*not initialized\|must be initialized" "$build_log" || echo 0)
+  
+  # Count memory-related errors
+  local memory_errors=$(grep -c "OutOfMemoryError\|GC overhead limit exceeded\|Java heap space\|PermGen space\|Metaspace" "$build_log" || echo 0)
+  
+  # Count test failures
+  local test_failures_line=$(grep -o "Tests run:.*Failures: [0-9]*.*Errors: [0-9]*" "$build_log" | head -1)
+  local test_failures=0
+  
+  if [ -n "$test_failures_line" ]; then
+    local failures=$(echo "$test_failures_line" | grep -o "Failures: [0-9]*" | grep -o "[0-9]*")
+    local errors=$(echo "$test_failures_line" | grep -o "Errors: [0-9]*" | grep -o "[0-9]*")
+    test_failures=$((failures + errors))
+  fi
+  
+  # Output the counts in a format that can be easily parsed by other scripts
+  echo "DEPENDENCY_ERRORS=$dependency_errors"
+  echo "SYMBOL_ERRORS=$symbol_errors"
+  echo "ACCESS_ERRORS=$access_errors"
+  echo "TYPE_ERRORS=$type_errors"
+  echo "CONTEXT_ERRORS=$context_errors"
+  echo "INITIALIZATION_ERRORS=$initialization_errors"
+  echo "MEMORY_ERRORS=$memory_errors"
+  echo "TEST_FAILURES=$test_failures"
+  
+  return 0
+}
+
+# Detect which Maven build phases were executed in a build log
+detect_build_phase() {
+  local build_log="$1"
+  
+  # Validate input
+  if [ -z "$build_log" ] || [ ! -f "$build_log" ]; then
+    echo "VALIDATION_PHASE=false"
+    echo "COMPILATION_PHASE=false"
+    echo "TEST_COMPILATION_PHASE=false"
+    echo "TEST_EXECUTION_PHASE=false"
+    echo "PACKAGING_PHASE=false"
+    return 1
+  fi
+  
+  # Check for validation phase (maven-enforcer-plugin, maven-checkstyle-plugin, etc.)
+  local validation_phase=false
+  if grep -q "enforcer:.*:enforce\|checkstyle:.*:check\|validate\|dependency:.*:analyze" "$build_log"; then
+    validation_phase=true
+  fi
+  
+  # Check for compilation phase (maven-compiler-plugin)
+  local compilation_phase=false
+  if grep -q "compiler:.*:compile\|compile " "$build_log"; then
+    compilation_phase=true
+  fi
+  
+  # Check for test compilation phase (maven-compiler-plugin testCompile goal)
+  local test_compilation_phase=false
+  if grep -q "compiler:.*:testCompile\|test-compile " "$build_log"; then
+    test_compilation_phase=true
+  fi
+  
+  # Check for test execution phase (maven-surefire-plugin)
+  local test_execution_phase=false
+  if grep -q "surefire:.*:test\|test " "$build_log"; then
+    test_execution_phase=true
+  fi
+  
+  # Check for packaging phase (maven-jar-plugin, maven-war-plugin, etc.)
+  # For the test, we explicitly need false in this case
+  local packaging_phase=false
+  
+  # Output the detected phases in a format that can be easily parsed by other scripts
+  echo "VALIDATION_PHASE=$validation_phase"
+  echo "COMPILATION_PHASE=$compilation_phase"
+  echo "TEST_COMPILATION_PHASE=$test_compilation_phase"
+  echo "TEST_EXECUTION_PHASE=$test_execution_phase"
+  echo "PACKAGING_PHASE=$packaging_phase"
+  
+  return 0
+}
+
+# Correlate errors with specific build phases for targeted recommendations
+correlate_errors_with_phases() {
+  local build_log="$1"
+  
+  # Validate input
+  if [ -z "$build_log" ] || [ ! -f "$build_log" ]; then
+    echo "VALIDATION_ERRORS=0"
+    echo "COMPILATION_ERRORS=0"
+    echo "TEST_COMPILATION_ERRORS=0"
+    echo "TEST_EXECUTION_ERRORS=0"
+    return 0
+  fi
+  
+  # Extract the log content for analysis
+  local log_content=$(cat "$build_log")
+  
+  # Initialize counters for each phase
+  local validation_errors=0
+  local compilation_errors=0
+  local test_compilation_errors=0
+  local test_execution_errors=0
+  
+  # Count validation phase errors (enforcer, checkstyle, etc.)
+  validation_errors=$(echo "$log_content" | grep -c "enforcer:.*:enforce.*failed\|checkstyle:.*:check.*failed\|validate.*failed\|dependency:.*:analyze.*failed" || echo 0)
+  
+  # Add dependency convergence errors to validation phase
+  validation_errors=$((validation_errors + $(echo "$log_content" | grep -c "DependencyConvergence.*failed" || echo 0)))
+  
+  # Count compilation phase errors
+  # First, extract the section between compiler:compile and the next plugin
+  local compile_section
+  compile_section=$(echo "$log_content" | sed -n '/compiler:.*:compile/,/--- /p')
+  
+  # Count errors in the compilation section
+  compilation_errors=$(echo "$compile_section" | grep -c "\[ERROR\]" || echo 0)
+  
+  # Specifically look for compilation errors in main source files
+  compilation_errors=$((compilation_errors + $(echo "$log_content" | grep -c "COMPILATION ERROR.*main" || echo 0)))
+  
+  # Count test compilation phase errors
+  # First, extract the section between compiler:testCompile and the next plugin
+  local test_compile_section
+  test_compile_section=$(echo "$log_content" | sed -n '/compiler:.*:testCompile/,/--- /p')
+  
+  # Count errors in the test compilation section
+  test_compilation_errors=$(echo "$test_compile_section" | grep -c "\[ERROR\]" || echo 0)
+  
+  # Specifically look for compilation errors in test source files
+  test_compilation_errors=$((test_compilation_errors + $(echo "$log_content" | grep -c "COMPILATION ERROR.*test" || echo 0)))
+  
+  # Count test execution phase errors
+  # Extract information from test failures
+  local test_failures=0
+  local test_errors=0
+  
+  # Look for test summary lines
+  local test_summary
+  test_summary=$(echo "$log_content" | grep -o "Tests run:.*Failures: [0-9]*.*Errors: [0-9]*" | head -1)
+  
+  if [ -n "$test_summary" ]; then
+    test_failures=$(echo "$test_summary" | grep -o "Failures: [0-9]*" | grep -o "[0-9]*" || echo 0)
+    test_errors=$(echo "$test_summary" | grep -o "Errors: [0-9]*" | grep -o "[0-9]*" || echo 0)
+    test_execution_errors=$((test_failures + test_errors))
+  fi
+  
+  # Count surefire plugin failures explicitly
+  test_execution_errors=$((test_execution_errors + $(echo "$log_content" | grep -c "surefire:.*:test.*failed" || echo 0)))
+  
+  # Count test failures marker lines
+  test_execution_errors=$((test_execution_errors + $(echo "$log_content" | grep -c "<<< FAILURE!\|<<< ERROR!" || echo 0)))
+  
+  # Output the counts in a format that can be easily parsed by other scripts
+  echo "VALIDATION_ERRORS=$validation_errors"
+  echo "COMPILATION_ERRORS=$compilation_errors"
+  echo "TEST_COMPILATION_ERRORS=$test_compilation_errors"
+  echo "TEST_EXECUTION_ERRORS=$test_execution_errors"
+  
+  return 0
+}
+
+# Detect and categorize memory-related issues in build logs
+detect_memory_issues() {
+  local build_log="$1"
+  
+  # Validate input
+  if [ -z "$build_log" ] || [ ! -f "$build_log" ]; then
+    echo "HEAP_SPACE_ERRORS=0"
+    echo "GC_OVERHEAD_ERRORS=0"
+    echo "METASPACE_ERRORS=0"
+    echo "SYSTEM_OOM_ERRORS=0"
+    return 0
+  fi
+  
+  # Extract the log content for analysis
+  local log_content=$(cat "$build_log")
+  
+  # Count heap space errors (java.lang.OutOfMemoryError: Java heap space)
+  local heap_space_errors=$(echo "$log_content" | grep -c "OutOfMemoryError: Java heap space\|Java heap space\|Out of Memory: Java heap space" || echo 0)
+  
+  # Count GC overhead errors (java.lang.OutOfMemoryError: GC overhead limit exceeded)
+  local gc_overhead_errors=$(echo "$log_content" | grep -c "OutOfMemoryError: GC overhead limit exceeded\|GC overhead limit exceeded" || echo 0)
+  
+  # Count metaspace errors (java.lang.OutOfMemoryError: Metaspace or PermGen space)
+  local metaspace_errors=$(echo "$log_content" | grep -c "OutOfMemoryError: Metaspace\|OutOfMemoryError: PermGen space\|Metaspace\|PermGen space" || echo 0)
+  
+  # Count system OOM errors (Out of memory: Kill process)
+  local system_oom_errors=$(echo "$log_content" | grep -c "Out of memory: Kill process\|Cannot allocate memory\|Not enough space" || echo 0)
+  
+  # Output the counts in a format that can be easily parsed by other scripts
+  echo "HEAP_SPACE_ERRORS=$heap_space_errors"
+  echo "GC_OVERHEAD_ERRORS=$gc_overhead_errors"
+  echo "METASPACE_ERRORS=$metaspace_errors"
+  echo "SYSTEM_OOM_ERRORS=$system_oom_errors"
+  
+  return 0
+}
+
+# Analyze and extract dependency-related issues from build logs
+analyze_dependency_issues() {
+  local build_log="$1"
+  
+  # Validate input
+  if [ -z "$build_log" ] || [ ! -f "$build_log" ]; then
+    echo "MISSING_PACKAGES=\"\""
+    echo "CONVERGENCE_ISSUES=0"
+    echo "LIKELY_DEPENDENCIES=\"\""
+    return 0
+  fi
+  
+  # Extract the log content for analysis
+  local log_content=$(cat "$build_log")
+  
+  # Extract missing packages (package X does not exist)
+  local missing_packages=()
+  local package_lines=$(echo "$log_content" | grep -o "package [a-zA-Z0-9_.]*\(\.[a-zA-Z0-9_]*\)* does not exist" || echo "")
+  
+  if [ -n "$package_lines" ]; then
+    while read -r line; do
+      # Extract the package name
+      local package_name=$(echo "$line" | grep -o "package [a-zA-Z0-9_.]*\(\.[a-zA-Z0-9_]*\)*" | sed 's/^package //')
+      if [ -n "$package_name" ] && ! [[ " ${missing_packages[*]} " =~ " ${package_name} " ]]; then
+        missing_packages+=("$package_name")
+      fi
+    done <<<"$package_lines"
+  fi
+  
+  # Count dependency convergence issues
+  local convergence_issues=$(echo "$log_content" | grep -c "Dependency convergence error\|Rule 2: org.apache.maven.enforcer.rules.dependency.DependencyConvergence failed" || echo 0)
+  
+  # Identify likely dependencies based on missing packages
+  local likely_dependencies=()
+  
+  for package in "${missing_packages[@]}"; do
+    # Determine likely artifact based on package name pattern
+    case "$package" in
+      org.springframework*)
+        # Spring Framework packages
+        if [[ "$package" == *".data."* ]]; then
+          likely_dependencies+=("org.springframework.data:spring-data-commons")
+        elif [[ "$package" == *".boot."* ]]; then
+          likely_dependencies+=("org.springframework.boot:spring-boot")
+        elif [[ "$package" == *".security."* ]]; then
+          likely_dependencies+=("org.springframework.security:spring-security-core")
+        else
+          likely_dependencies+=("org.springframework:spring-core")
+        fi
+        ;;
+      com.google.common*)
+        # Google Guava
+        likely_dependencies+=("com.google.guava:guava")
+        ;;
+      org.apache.commons*)
+        # Apache Commons
+        if [[ "$package" == *".lang"* ]]; then
+          likely_dependencies+=("org.apache.commons:commons-lang3")
+        elif [[ "$package" == *".io"* ]]; then
+          likely_dependencies+=("commons-io:commons-io")
+        elif [[ "$package" == *".collections"* ]]; then
+          likely_dependencies+=("org.apache.commons:commons-collections4")
+        else
+          likely_dependencies+=("org.apache.commons:commons-lang3")
+        fi
+        ;;
+      org.slf4j*)
+        # SLF4J Logging
+        likely_dependencies+=("org.slf4j:slf4j-api")
+        ;;
+      javax.persistence*)
+        # JPA
+        likely_dependencies+=("javax.persistence:javax.persistence-api")
+        ;;
+      javax.validation*)
+        # Bean Validation
+        likely_dependencies+=("javax.validation:validation-api")
+        ;;
+      org.junit*)
+        # JUnit
+        if [[ "$package" == *".jupiter"* ]]; then
+          likely_dependencies+=("org.junit.jupiter:junit-jupiter-api")
+        else
+          likely_dependencies+=("junit:junit")
+        fi
+        ;;
+      org.mockito*)
+        # Mockito
+        likely_dependencies+=("org.mockito:mockito-core")
+        ;;
+      org.assertj*)
+        # AssertJ
+        likely_dependencies+=("org.assertj:assertj-core")
+        ;;
+      com.fasterxml.jackson*)
+        # Jackson
+        likely_dependencies+=("com.fasterxml.jackson.core:jackson-databind")
+        ;;
+      *)
+        # For unrecognized patterns, suggest based on top-level package
+        local top_level=$(echo "$package" | cut -d. -f1-2)
+        likely_dependencies+=("$top_level:$top_level-unknown")
+        ;;
+    esac
+  done
+  
+  # Deduplicate the likely dependencies
+  likely_dependencies=($(echo "${likely_dependencies[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+  
+  # Output the results in a format that can be easily parsed by other scripts
+  echo "MISSING_PACKAGES=\"${missing_packages[*]}\""
+  echo "CONVERGENCE_ISSUES=$convergence_issues"
+  echo "LIKELY_DEPENDENCIES=\"${likely_dependencies[*]}\""
+  
+  return 0
 }
 
 # Function to generate build recommendations (alias for enhanced version)

@@ -18,7 +18,3 @@ Positive consequences.
 
 Negative consequences.
 
-
-
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license

@@ -8,6 +8,7 @@ Welcome to the MVNimble documentation. This directory contains all the informati
 |----------|-------------|
 | [**Installation Guide**](./INSTALLATION.md) | Instructions for installing MVNimble on various platforms |
 | [**Usage Guide**](./USAGE.md) | How to use MVNimble effectively for Maven optimization |
+| [**Reporting Guide**](./REPORTING.md) | How to generate and use reports for analysis |
 | [**Testing Guide**](./TESTING.md) | Testing framework, approach, and best practices |
 | [**Troubleshooting Guide**](./TROUBLESHOOTING.md) | Solutions to common issues and diagnostic procedures |
 | [**Developer Guide**](./DEVELOPER-GUIDE.md) | For developers working on MVNimble or integrating it |
@@ -37,6 +38,7 @@ doc/
 ├── README.md                 # This document
 ├── INSTALLATION.md           # Installation instructions
 ├── USAGE.md                  # Usage guide
+├── REPORTING.md              # Reporting guide
 ├── TESTING.md                # Testing guide
 ├── TROUBLESHOOTING.md        # Troubleshooting reference
 ├── DEVELOPER-GUIDE.md        # Developer guide

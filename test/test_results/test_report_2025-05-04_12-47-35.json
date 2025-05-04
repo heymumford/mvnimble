@@ -1,0 +1,105 @@
+{
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 26.061137000
+  },
+  "tags": {
+    "functional": 0,
+    "nonfunctional": 0,
+    "positive": 0,
+    "negative": 0,
+    "adrs": [
+      { "id": "ADR 000", "count": 0 }
+,
+      { "id": "ADR 001", "count": 0 }
+,
+      { "id": "ADR 002", "count": 0 }
+,
+      { "id": "ADR 003", "count": 0 }
+,
+      { "id": "ADR 004", "count": 0 }
+,
+      { "id": "ADR 005", "count": 0 }
+    ],
+    "components": {
+      "core": 0,
+      "platform": 0,
+      "dependency": 0,
+      "reporting": 0,
+      "package_manager": 0,
+      "env_detection": 0
+    }
+  },
+  "tests": [
+    {"name":"adr000_adr_process.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.248297000}
+,
+    {"name":"adr001_shell_architecture.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":1.871120000}
+,
+    {"name":"adr002_bash_compatibility.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.272179000}
+,
+    {"name":"adr003_dependency_management.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.153342000}
+,
+    {"name":"adr004_cross_platform.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.203012000}
+,
+    {"name":"adr005_magic_numbers.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.324387000}
+,
+    {"name":"build_failure_test.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.534220000}
+,
+    {"name":"closed_loop_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.084087000}
+,
+    {"name":"educational_effectiveness_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.092733000}
+,
+    {"name":"execution_time.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.184384000}
+,
+    {"name":"gold_standard_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.105090000}
+,
+    {"name":"monitoring_test.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.928046000}
+,
+    {"name":"package_manager.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.212135000}
+,
+    {"name":"platform_compatibility.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":3.528782000}
+,
+    {"name":"test_build_failure_analysis.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.766158000}
+,
+    {"name":"test_enhanced_build_failure_analysis.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.853846000}
+,
+    {"name":"test_optimization_config.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.973419000}
+,
+    {"name":"thread_safety_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.088401000}
+,
+    {"name":"validation_test.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.637499000}
+  ],
+  "failed_tests": [
+    "adr000_adr_process.bats"
+,
+    "adr001_shell_architecture.bats"
+,
+    "adr002_bash_compatibility.bats"
+,
+    "adr003_dependency_management.bats"
+,
+    "adr004_cross_platform.bats"
+,
+    "adr005_magic_numbers.bats"
+,
+    "build_failure_test.bats"
+,
+    "monitoring_test.bats"
+,
+    "validation_test.bats"
+  ],
+  "performance": [
+  ],
+  "ci": {
+    "environment": "local",
+    "system": "Darwin",
+    "platform": "arm64",
+    "timestamp": "2025-05-04 12:48:03",
+    "repository": "mvnimble",
+    "branch": "main",
+    "commit": "unknown"
+  }
+}

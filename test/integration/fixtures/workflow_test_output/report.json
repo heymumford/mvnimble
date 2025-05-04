@@ -1,0 +1,12 @@
+{
+  "build_start": 1746382995,
+  "build_end": 1746383000,
+  "build_duration": 5,
+  "build_status": "success",
+  "maven_command": "mvn test",
+  "system": {
+    "os": "Darwin",
+    "cpu_cores": 10,
+    "memory_mb": 65536
+  }
+}

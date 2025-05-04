@@ -1,0 +1,54 @@
+{
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 4.455749000
+  },
+  "tags": {
+    "functional": 0,
+    "nonfunctional": 0,
+    "positive": 0,
+    "negative": 0,
+    "adrs": [
+      { "id": "ADR 000", "count": 0 }
+,
+      { "id": "ADR 001", "count": 0 }
+,
+      { "id": "ADR 002", "count": 0 }
+,
+      { "id": "ADR 003", "count": 0 }
+,
+      { "id": "ADR 004", "count": 0 }
+,
+      { "id": "ADR 005", "count": 0 }
+    ],
+    "components": {
+      "core": 0,
+      "platform": 0,
+      "dependency": 0,
+      "reporting": 0,
+      "package_manager": 0,
+      "env_detection": 0
+    }
+  },
+  "tests": [
+    {"name":"test_build_failure_analysis.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.731973000}
+,
+    {"name":"test_enhanced_build_failure_analysis.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.723776000}
+  ],
+  "failed_tests": [
+  ],
+  "performance": [
+  ],
+  "ci": {
+    "environment": "local",
+    "system": "Darwin",
+    "platform": "arm64",
+    "timestamp": "2025-05-04 12:48:12",
+    "repository": "mvnimble",
+    "branch": "main",
+    "commit": "unknown"
+  }
+}

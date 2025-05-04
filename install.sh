@@ -1,216 +1,293 @@
-#!/bin/bash
-# Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+#!/usr/bin/env bash
 # MVNimble Installer
 # Installs MVNimble to make it available system-wide
+# Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
 
 set -e
 
 # Get current working directory
-CWD=$(pwd)
+CWD="$(pwd)"
 
-# Determine installation location
+# Define color output
+COLOR_RED="\033[0;31m"
+COLOR_GREEN="\033[0;32m"
+COLOR_YELLOW="\033[1;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_BOLD="\033[1m"
+COLOR_RESET="\033[0m"
+
+# Print styled message
+function print_header() {
+  echo -e "${COLOR_BOLD}${COLOR_BLUE}=== $1 ===${COLOR_RESET}"
+}
+
+function print_success() {
+  echo -e "${COLOR_GREEN}✓ $1${COLOR_RESET}"
+}
+
+function print_error() {
+  echo -e "${COLOR_RED}✗ $1${COLOR_RESET}"
+}
+
+function print_warning() {
+  echo -e "${COLOR_YELLOW}! $1${COLOR_RESET}"
+}
+
+# Installation options
 DEFAULT_INSTALL_DIR="${CWD}/target/mvnimble"
-BIN_LINK="${CWD}/target/bin/mvnimble"
+LOCAL_BIN_DIR="${CWD}/target/bin"
+SYSTEM_BIN_DIR="/usr/local/bin"
 ZSH_COMPLETION_DIR="${CWD}/target/zsh/completions"
 
-echo "MVNimble Installer"
-echo "================="
-echo
-
-# Check if target directory exists and clean it if it does
-if [ -d "${CWD}/target" ]; then
-    echo "Existing target directory found. Cleaning up..."
-    rm -rf "${CWD}/target"
-    echo "Target directory cleaned."
-fi
-
-# Default to target installation method for testing
-INSTALL_METHOD="target"
-# Ensure the target directories exist
-mkdir -p "${CWD}/target/bin"
-mkdir -p "${ZSH_COMPLETION_DIR}"
-
-# Parse command line arguments for installation method
-for arg in "$@"; do
-  case $arg in
-    --system)
-      echo "Warning: System-wide installation is disabled."
-      echo "All installations will go to the target directory."
-      INSTALL_METHOD="target"
-      shift
-      ;;
-  esac
-done
-
-echo "Installing MVNimble to target directory..."
-
 # Parse command line arguments
+INSTALL_METHOD="target"  # default to target installation
 INTERACTIVE=true
-
-for arg in "$@"; do
-  case $arg in
-    --non-interactive)
-      INTERACTIVE=false
-      shift
-      ;;
-    --local)
-      echo "All installations will go to the target directory."
-      shift
-      ;;
-  esac
-done
-
-# Always use the default installation directory
-echo "Using installation directory: ${DEFAULT_INSTALL_DIR}"
-INSTALL_DIR=${DEFAULT_INSTALL_DIR}
-
-echo "Installing MVNimble to ${INSTALL_DIR}..."
-
-# Create installation directory structure
-mkdir -p "${INSTALL_DIR}/bin"
-mkdir -p "${INSTALL_DIR}/src/lib/modules"
-mkdir -p "${INSTALL_DIR}/src/completion"
-mkdir -p "${INSTALL_DIR}/doc"
-mkdir -p "${INSTALL_DIR}/doc/adr"
-mkdir -p "${INSTALL_DIR}/test"
-mkdir -p "${INSTALL_DIR}/examples"
-mkdir -p "${INSTALL_DIR}/results"
-
-# Copy files
-cp bin/mvnimble "${INSTALL_DIR}/bin/"
-cp src/lib/mvnimble.sh "${INSTALL_DIR}/src/lib/"
-cp src/lib/modules/*.sh "${INSTALL_DIR}/src/lib/modules/"
-cp src/lib/generate_report.sh "${INSTALL_DIR}/src/lib/"
-cp src/completion/_mvnimble "${INSTALL_DIR}/src/completion/"
-cp -r doc/* "${INSTALL_DIR}/doc/"
-cp -r examples/* "${INSTALL_DIR}/examples/" 2>/dev/null || true
-cp -r test/* "${INSTALL_DIR}/test/" 2>/dev/null || true
-cp README.md "${INSTALL_DIR}/"
-
-# Make scripts executable
-chmod +x "${INSTALL_DIR}/bin/mvnimble"
-chmod +x "${INSTALL_DIR}/src/lib/mvnimble.sh"
-chmod +x "${INSTALL_DIR}/src/lib/modules/"*.sh
-chmod +x "${INSTALL_DIR}/src/lib/generate_report.sh"
-chmod +x "${INSTALL_DIR}/test/run_bats_tests.sh" 2>/dev/null || true
-
-# Copy binary script directly instead of symlink to avoid path issues
-mkdir -p "$(dirname "${BIN_LINK}")"
-cp "${INSTALL_DIR}/bin/mvnimble" "${BIN_LINK}"
-
-# Fix up the bin script to use absolute paths
-sed -i.bak "s|INSTALL_DIR=\"\${SCRIPT_DIR}/\.\.\"|INSTALL_DIR=\"${INSTALL_DIR}\"|g" "${BIN_LINK}"
-rm "${BIN_LINK}.bak" 2>/dev/null || true
-
-# Install ZSH completion if possible
-if [[ -d "${ZSH_COMPLETION_DIR}" && -w "${ZSH_COMPLETION_DIR}" ]]; then
-    echo "Installing ZSH completion..."
-    ln -sf "${INSTALL_DIR}/src/completion/_mvnimble" "${ZSH_COMPLETION_DIR}/_mvnimble"
-    echo "ZSH completion installed. You may need to run 'compinit' to enable it."
-elif [[ "${INSTALL_METHOD}" == "user" ]]; then
-    echo "To enable ZSH completion, add this to your .zshrc:"
-    echo "    fpath=(${ZSH_COMPLETION_DIR} \$fpath)"
-    echo "    autoload -Uz compinit"
-    echo "    compinit"
-fi
-
-# Create a standalone BATS installation for the target directory
-echo
-echo "Setting up BATS (Bash Automated Testing System) for this installation..."
-echo "Installing BATS to target directory..."
-
-# Create a temporary directory for installation
-TEMP_DIR=$(mktemp -d)
-CURRENT_DIR=$(pwd)
-cd "$TEMP_DIR" || { echo "Failed to cd to temp directory"; exit 1; }
-
-# Clone and install BATS
-git clone https://github.com/bats-core/bats-core.git
-cd bats-core || { echo "Failed to cd to bats-core directory"; exit 1; }
-
-# Install BATS to the target directory
-BATS_INSTALL_DIR="${CWD}/target/bats"
-mkdir -p "$BATS_INSTALL_DIR"
-./install.sh "$BATS_INSTALL_DIR"
-
-# Add to PATH for this script
-export PATH="$BATS_INSTALL_DIR/bin:$PATH"
-
-# Clean up
-cd "$CURRENT_DIR" || { echo "Failed to return to original directory"; exit 1; }
-rm -rf "$TEMP_DIR"
-
-echo "BATS installed successfully to ${BATS_INSTALL_DIR}!"
-
-# Parse additional arguments for testing
 SKIP_TESTS=false
 TEST_TAGS=""
 TEST_REPORT=false
 
-for arg in "$@"; do
-  case $arg in
+# Print welcome message
+print_header "MVNimble Installer"
+echo
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --system)
+      print_warning "System-wide installation requested"
+      if [[ "$EUID" -ne 0 ]]; then
+        print_error "System-wide installation requires root privileges"
+        print_warning "Falling back to target installation method"
+      else
+        INSTALL_METHOD="system"
+      fi
+      shift
+      ;;
+    --local)
+      INSTALL_METHOD="target"
+      print_success "Using target installation method"
+      shift
+      ;;
+    --non-interactive)
+      INTERACTIVE=false
+      shift
+      ;;
     --skip-tests)
       SKIP_TESTS=true
       shift
       ;;
     --test-tags=*)
-      TEST_TAGS="${arg#*=}"
+      TEST_TAGS="${1#*=}"
       shift
       ;;
     --test-report)
       TEST_REPORT=true
       shift
       ;;
+    --help)
+      echo "Usage: $0 [options]"
+      echo
+      echo "Options:"
+      echo "  --system         Install MVNimble system-wide (requires root)"
+      echo "  --local          Install MVNimble to local target directory (default)"
+      echo "  --non-interactive Skip interactive prompts"
+      echo "  --skip-tests     Skip running tests after installation"
+      echo "  --test-tags=TAGS Run only tests with specific tags"
+      echo "  --test-report    Generate test report"
+      echo "  --help           Show this help message"
+      exit 0
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
   esac
 done
 
-echo
-echo "Installation complete!"
+# Select appropriate installation directory
+if [[ "$INSTALL_METHOD" == "system" ]]; then
+  INSTALL_DIR="/usr/local/opt/mvnimble"
+  BIN_DIR="$SYSTEM_BIN_DIR"
+  print_warning "Installing MVNimble system-wide to $INSTALL_DIR"
+else
+  INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+  BIN_DIR="$LOCAL_BIN_DIR"
+  print_success "Installing MVNimble to $INSTALL_DIR"
+fi
 
-echo "To use mvnimble from this installation, run:"
-echo "    export PATH=\"${CWD}/target/bin:\$PATH\""
-echo "    export BATS_PATH=\"${CWD}/target/bats/bin:\$PATH\""
+# Clean up existing target directory if using target installation
+if [[ "$INSTALL_METHOD" == "target" && -d "${CWD}/target" ]]; then
+  print_header "Cleaning Existing Installation"
+  rm -rf "${CWD}/target"
+  print_success "Target directory cleaned"
+fi
+
+# Create necessary directories
+mkdir -p "$INSTALL_DIR"
+mkdir -p "$INSTALL_DIR/bin"
+mkdir -p "$INSTALL_DIR/lib"
+mkdir -p "$INSTALL_DIR/doc"
+mkdir -p "$INSTALL_DIR/examples"
+mkdir -p "$BIN_DIR"
+mkdir -p "$ZSH_COMPLETION_DIR"
+
+# Install files
+print_header "Installing Files"
+
+# Copy core files
+echo "Copying library files..."
+cp -r "${CWD}/lib/"* "$INSTALL_DIR/lib/" 2>/dev/null || true
+
+# Copy bin scripts
+echo "Copying executable scripts..."
+cp -r "${CWD}/bin/"* "$INSTALL_DIR/bin/" 2>/dev/null || true
+
+# Copy documentation
+echo "Copying documentation..."
+cp -r "${CWD}/doc/"* "$INSTALL_DIR/doc/" 2>/dev/null || true
+
+# Copy examples
+echo "Copying examples..."
+cp -r "${CWD}/examples/"* "$INSTALL_DIR/examples/" 2>/dev/null || true
+
+# Copy readme files
+cp "${CWD}/README.md" "$INSTALL_DIR/" 2>/dev/null || true
+cp "${CWD}/STRUCTURE.md" "$INSTALL_DIR/" 2>/dev/null || true
+cp "${CWD}/CLAUDE.md" "$INSTALL_DIR/" 2>/dev/null || true
+
+# Make scripts executable
+print_header "Setting Permissions"
+chmod +x "$INSTALL_DIR/bin/"*.sh 2>/dev/null || true
+chmod +x "$INSTALL_DIR/bin/mvnimble"* 2>/dev/null || true
+chmod +x "$INSTALL_DIR/lib/"*.sh 2>/dev/null || true
+
+# Create symlinks in bin directory
+print_header "Creating Executable Links"
+ln -sf "$INSTALL_DIR/bin/mvnimble" "$BIN_DIR/mvnimble"
+ln -sf "$INSTALL_DIR/bin/mvnimble-monitor" "$BIN_DIR/mvnimble-monitor"
+ln -sf "$INSTALL_DIR/bin/mvnimble-analyze" "$BIN_DIR/mvnimble-analyze"
+
+print_success "MVNimble executables installed to $BIN_DIR"
+
+# Set up shell completion if available
+if [[ -f "${CWD}/src/completion/_mvnimble" ]]; then
+  print_header "Installing Shell Completion"
+  mkdir -p "$INSTALL_DIR/completion"
+  cp "${CWD}/src/completion/_mvnimble" "$INSTALL_DIR/completion/"
+  
+  if [[ -d "$ZSH_COMPLETION_DIR" && -w "$ZSH_COMPLETION_DIR" ]]; then
+    ln -sf "$INSTALL_DIR/completion/_mvnimble" "$ZSH_COMPLETION_DIR/_mvnimble"
+    print_success "ZSH completion installed"
+  else
+    print_warning "ZSH completion not installed automatically"
+    echo "To enable ZSH completion, add this to your .zshrc:"
+    echo "    fpath=($INSTALL_DIR/completion \$fpath)"
+    echo "    autoload -Uz compinit"
+    echo "    compinit"
+  fi
+fi
 
 # Run tests if not skipped
 if [[ "$SKIP_TESTS" == "false" ]]; then
-    echo
-    echo "Running MVNimble tests with local BATS installation..."
+  print_header "Running Tests"
+  
+  # Check if BATS is available
+  if ! command -v bats >/dev/null 2>&1; then
+    print_warning "BATS (Bash Automated Testing System) not found"
     
-    # Export the path to the local BATS installation
-    export PATH="${BATS_INSTALL_DIR}/bin:$PATH"
-    
-    # Run test summary script for a cleaner output
-    if [[ -f "${INSTALL_DIR}/test/test_summary.sh" ]]; then
-        chmod +x "${INSTALL_DIR}/test/test_summary.sh"
+    if [[ "$INTERACTIVE" == "true" ]]; then
+      read -p "Do you want to install BATS for testing? [y/N] " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_warning "Skipping tests as BATS is not available"
+        SKIP_TESTS=true
+      else
+        print_header "Installing BATS"
         
-        # Pass --with-report option if test report is requested
-        if [[ "$TEST_REPORT" == "true" ]]; then
-            "${INSTALL_DIR}/test/test_summary.sh" --with-report
-        else
-            "${INSTALL_DIR}/test/test_summary.sh"
-        fi
+        # Create a temporary directory for installation
+        TEMP_DIR=$(mktemp -d)
+        CURRENT_DIR=$(pwd)
+        cd "$TEMP_DIR" || { print_error "Failed to cd to temp directory"; exit 1; }
+        
+        # Clone and install BATS
+        git clone https://github.com/bats-core/bats-core.git
+        cd bats-core || { print_error "Failed to cd to bats-core directory"; exit 1; }
+        
+        # Install BATS to the target directory
+        BATS_INSTALL_DIR="${CWD}/target/bats"
+        mkdir -p "$BATS_INSTALL_DIR"
+        ./install.sh "$BATS_INSTALL_DIR"
+        
+        # Add to PATH for this script
+        export PATH="$BATS_INSTALL_DIR/bin:$PATH"
+        
+        # Clean up
+        cd "$CURRENT_DIR" || { print_error "Failed to return to original directory"; exit 1; }
+        rm -rf "$TEMP_DIR"
+        
+        print_success "BATS installed successfully to ${BATS_INSTALL_DIR}"
+      fi
     else
-        # Fall back to direct test execution if summary script isn't available
-        TEST_CMD="${INSTALL_DIR}/test/run_bats_tests.sh --non-interactive"
-        
-        if [[ -n "$TEST_TAGS" ]]; then
-          TEST_CMD="${TEST_CMD} --tags ${TEST_TAGS}"
-        fi
-        
-        if [[ "$TEST_REPORT" == "true" ]]; then
-          TEST_CMD="${TEST_CMD} --report markdown"
-        fi
-        
-        chmod +x "${INSTALL_DIR}/test/run_bats_tests.sh"
-        eval "$TEST_CMD"
+      print_warning "Skipping tests as BATS is not available and running in non-interactive mode"
+      SKIP_TESTS=true
     fi
-    
-    echo
-    echo "Tests completed!"
+  fi
+  
+  if [[ "$SKIP_TESTS" == "false" ]]; then
+    # Run tests
+    if [[ -f "${CWD}/test/run_bats_tests.sh" ]]; then
+      print_header "Running Tests"
+      
+      TEST_CMD="${CWD}/test/run_bats_tests.sh"
+      
+      if [[ "$INTERACTIVE" == "false" ]]; then
+        TEST_CMD="${TEST_CMD} --non-interactive"
+      fi
+      
+      if [[ -n "$TEST_TAGS" ]]; then
+        TEST_CMD="${TEST_CMD} --tags ${TEST_TAGS}"
+      fi
+      
+      if [[ "$TEST_REPORT" == "true" ]]; then
+        TEST_CMD="${TEST_CMD} --report markdown"
+      fi
+      
+      # Make sure test script is executable
+      chmod +x "${CWD}/test/run_bats_tests.sh"
+      
+      # Run tests
+      eval "$TEST_CMD"
+      
+      print_success "Tests completed successfully"
+    else
+      print_warning "Test script not found at ${CWD}/test/run_bats_tests.sh"
+    fi
+  fi
+fi
+
+# Print installation summary
+print_header "Installation Complete"
+
+if [[ "$INSTALL_METHOD" == "target" ]]; then
+  echo "MVNimble installed to: $INSTALL_DIR"
+  echo
+  echo "To use MVNimble from this installation, run:"
+  echo "    export PATH=\"$BIN_DIR:\$PATH\""
+  
+  if [[ -d "${CWD}/target/bats/bin" ]]; then
+    echo "    export PATH=\"${CWD}/target/bats/bin:\$PATH\""
+  fi
 else
-    echo
-    echo "To use MVNimble, run: ${CWD}/target/bin/mvnimble --help"
-    echo "To run tests, use: ${INSTALL_DIR}/test/run_bats_tests.sh"
+  echo "MVNimble installed system-wide to: $INSTALL_DIR"
+  echo "Executable scripts installed to: $BIN_DIR"
 fi
 
 echo
+echo "Try the following commands:"
+echo "    mvnimble --help"
+echo "    mvnimble verify"
+echo "    mvnimble-monitor --help"
+echo "    mvnimble-analyze --help"
+echo
+echo "For usage examples, see: $INSTALL_DIR/examples/README.md"

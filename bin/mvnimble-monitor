@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# MVNimble-Monitor - Maven build monitoring utility
+# Specialized script for monitoring Maven builds
+
+# Ensure script fails on error
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the parent directory (project root)
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# Library path
+LIB_DIR="${PROJECT_ROOT}/lib"
+
+# Source required libraries
+source "${LIB_DIR}/constants.sh"
+source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/environment.sh"
+source "${LIB_DIR}/monitor.sh"
+
+# Print help menu
+function print_help() {
+  echo "Usage: mvnimble-monitor [options] -- [maven command]"
+  echo ""
+  echo "Monitor Maven builds in real-time to identify bottlenecks and issues"
+  echo ""
+  echo "Options:"
+  echo "  -o, --output DIR    Specify output directory for monitoring data (default: ./mvnimble-results)"
+  echo "  -i, --interval SEC  Set data collection interval in seconds (default: 5)"
+  echo "  -m, --max-time MIN  Maximum monitoring time in minutes (default: 60)"
+  echo "  -h, --help          Show this help message"
+  echo ""
+  echo "Example:"
+  echo "  mvnimble-monitor -o ./results -- mvn clean test"
+}
+
+# Main function
+function main() {
+  # Check for empty arguments
+  if [ $# -eq 0 ]; then
+    print_help
+    exit 0
+  fi
+
+  # Check for help option
+  if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    print_help
+    exit 0
+  fi
+
+  # Find the -- separator
+  local maven_cmd_idx=0
+  for i in $(seq 1 $#); do
+    if [ "${!i}" = "--" ]; then
+      maven_cmd_idx=$i
+      break
+    fi
+  done
+  
+  if [ $maven_cmd_idx -eq 0 ]; then
+    print_error "Missing Maven command. Use -- to separate MVNimble options from Maven command."
+    echo "Example: mvnimble-monitor -o ./results -- mvn clean test"
+    exit 1
+  fi
+  
+  # Parse MVNimble options
+  local output_dir="./mvnimble-results"
+  local interval=5
+  local max_time=60
+  
+  while [ "$1" != "--" ]; do
+    case "$1" in
+      -o|--output)
+        output_dir="$2"
+        shift 2
+        ;;
+      -i|--interval)
+        interval="$2"
+        shift 2
+        ;;
+      -m|--max-time)
+        max_time="$2"
+        shift 2
+        ;;
+      *)
+        print_error "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+  done
+  
+  # Skip the -- separator
+  shift
+  
+  # Now $@ contains the Maven command
+  if [ $# -eq 0 ]; then
+    print_error "No Maven command specified after --"
+    exit 1
+  fi
+  
+  print_header "MVNimble Maven Build Monitor"
+  echo "Starting Maven build monitoring..."
+  echo "Output directory: $output_dir"
+  echo "Data collection interval: ${interval}s"
+  echo "Maximum monitoring time: ${max_time}m"
+  echo "Maven command: $*"
+  echo ""
+  
+  # Convert max_time from minutes to seconds for the monitor function
+  local max_seconds=$((max_time * 60))
+  
+  # Create output directory if it doesn't exist
+  mkdir -p "$output_dir"
+  
+  # Start monitoring
+  monitor_maven_build "$output_dir" "$interval" "$max_seconds" "$@"
+}
+
+# Execute main function
+main "$@"

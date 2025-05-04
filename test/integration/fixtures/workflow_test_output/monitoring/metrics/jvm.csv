@@ -1,0 +1,4 @@
+timestamp,heap_used_mb,heap_committed_mb,non_heap_used_mb,non_heap_committed_mb,threads,gc_time_ms
+1746382995,0,0,0,0,0,
+1746382998,0,0,0,0,0,
+1746383000,0,0,0,0,0,

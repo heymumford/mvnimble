@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# MVNimble-Analyze - Maven build analysis utility
+# Specialized script for analyzing Maven builds and suggesting optimizations
+
+# Ensure script fails on error
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the parent directory (project root)
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# Library path
+LIB_DIR="${PROJECT_ROOT}/lib"
+
+# Source required libraries
+source "${LIB_DIR}/constants.sh"
+source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/analyze.sh"
+source "${LIB_DIR}/report.sh"
+
+# Print help menu
+function print_help() {
+  echo "Usage: mvnimble-analyze [options]"
+  echo ""
+  echo "Analyze Maven build data and suggest optimizations"
+  echo ""
+  echo "Options:"
+  echo "  -i, --input DIR     Specify input directory with monitoring data"
+  echo "  -o, --output FILE   Specify output file for analysis results (default: mvnimble-analysis.md)"
+  echo "  -f, --format FMT    Output format: markdown, html, json (default: markdown)"
+  echo "  -p, --pom FILE      Path to pom.xml file for configuration analysis (default: pom.xml)"
+  echo "  -h, --help          Show this help message"
+  echo ""
+  echo "Example:"
+  echo "  mvnimble-analyze -i ./results -o ./analysis.md -f markdown"
+}
+
+# Main function
+function main() {
+  # Check for empty arguments
+  if [ $# -eq 0 ]; then
+    print_help
+    exit 0
+  fi
+
+  # Check for help option
+  if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    print_help
+    exit 0
+  fi
+  
+  # Parse options
+  local input_dir=""
+  local output_file="mvnimble-analysis.md"
+  local format="markdown"
+  local pom_file="pom.xml"
+  
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -i|--input)
+        input_dir="$2"
+        shift 2
+        ;;
+      -o|--output)
+        output_file="$2"
+        shift 2
+        ;;
+      -f|--format)
+        format="$2"
+        shift 2
+        ;;
+      -p|--pom)
+        pom_file="$2"
+        shift 2
+        ;;
+      -h|--help)
+        print_help
+        exit 0
+        ;;
+      *)
+        print_error "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+  done
+  
+  if [ -z "$input_dir" ]; then
+    print_error "Input directory (-i, --input) is required"
+    exit 1
+  fi
+  
+  print_header "MVNimble Maven Build Analyzer"
+  echo "Analyzing Maven build data..."
+  echo "Input directory: $input_dir"
+  echo "Output file: $output_file"
+  echo "Format: $format"
+  echo "POM file: $pom_file"
+  echo ""
+  
+  # Analyze build data
+  analyze_build_data "$input_dir" "$output_file" "$format" "$pom_file"
+  
+  print_success "Analysis complete! Results saved to: $output_file"
+}
+
+# Execute main function
+main "$@"

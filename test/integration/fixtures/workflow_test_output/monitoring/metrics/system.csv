@@ -1,0 +1,4 @@
+timestamp,cpu_percent,memory_mb,disk_io_mb,network_mb
+1746382995,30.6,4415,0,0
+1746382997,12.34,4454,0,0
+1746383000,13.67,4432,0,0

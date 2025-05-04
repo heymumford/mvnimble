@@ -94,14 +94,14 @@ For detailed installation instructions, see our [Installation Guide](./doc/INSTA
 # Navigate to your Maven project directory
 cd your-maven-project
 
-# Run a quick analysis to get performance recommendations
-mvnimble --analyze
-
 # Monitor a build in real-time to detect bottlenecks
-mvn clean test | mvnimble --monitor
+mvnimble monitor -- mvn clean test
 
-# Generate an optimization report
-mvnimble --report html
+# Analyze build results
+mvnimble analyze -i ./mvnimble-results
+
+# Generate a report in HTML format
+mvnimble report -i ./mvnimble-results/data.json -o ./report.html -f html
 ```
 
 ## 📊 Usage Examples
@@ -109,30 +109,27 @@ mvnimble --report html
 ### Basic Usage
 
 ```bash
-# Get optimization recommendations for your Maven project
-mvnimble --optimize
-
 # Monitor Maven test execution in real-time
-mvnimble --monitor
+mvnimble monitor -- mvn clean test
 
-# Analyze thread safety issues in your tests
-mvnimble --thread-safety
+# Analyze build results and get optimization recommendations
+mvnimble analyze -i ./mvnimble-results
+
+# Verify your environment is properly configured
+mvnimble verify
 ```
 
 ### Advanced Usage
 
 ```bash
-# Generate detailed report in HTML format
-mvnimble --report html --output ./performance-report
+# Monitor with custom settings
+mvnimble monitor -o ./custom-results -i 10 -m 30 -- mvn clean test
 
-# Run with custom monitoring interval
-mvnimble --monitor 10 --time 30
+# Use specialized monitoring script
+mvnimble-monitor -o ./results -- mvn clean test
 
-# Analyze a specific test directory
-mvnimble --analyze --test-dir ./src/test/java/com/example/critical
-
-# Apply recommended optimizations automatically
-mvnimble --optimize --apply
+# Use specialized analysis script with HTML output
+mvnimble-analyze -i ./results -o ./analysis.html -f html -p ./custom-pom.xml
 ```
 
 For more usage examples, see our [Usage Guide](./doc/USAGE.md).
@@ -143,6 +140,7 @@ Complete documentation is available in the [doc directory](./doc/README.md). Key
 
 - [Installation Guide](./doc/INSTALLATION.md) - How to install MVNimble
 - [Usage Guide](./doc/USAGE.md) - How to use MVNimble effectively
+- [Reporting Guide](./doc/REPORTING.md) - How to generate and use reports
 - [Testing Guide](./doc/TESTING.md) - Testing approach and best practices
 - [Troubleshooting Guide](./doc/TROUBLESHOOTING.md) - Solutions to common issues
 - [Developer Guide](./doc/DEVELOPER-GUIDE.md) - For MVNimble developers
