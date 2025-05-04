@@ -1,0 +1,81 @@
+{
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "duration": 16.502507000
+  },
+  "tags": {
+    "functional": 0,
+    "nonfunctional": 0,
+    "positive": 0,
+    "negative": 0,
+    "adrs": [
+      { "id": "ADR 000", "count": 0 }
+,
+      { "id": "ADR 001", "count": 0 }
+,
+      { "id": "ADR 002", "count": 0 }
+,
+      { "id": "ADR 003", "count": 0 }
+,
+      { "id": "ADR 004", "count": 0 }
+,
+      { "id": "ADR 005", "count": 0 }
+    ],
+    "components": {
+      "core": 0,
+      "platform": 0,
+      "dependency": 0,
+      "reporting": 0,
+      "package_manager": 0,
+      "env_detection": 0
+    }
+  },
+  "tests": [
+    {"name":"adr000_adr_process.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.843647000}
+,
+    {"name":"adr001_shell_architecture.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":1.719676000}
+,
+    {"name":"adr002_bash_compatibility.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.275019000}
+,
+    {"name":"adr003_dependency_management.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":1.355161000}
+,
+    {"name":"adr004_cross_platform.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":1.361002000}
+,
+    {"name":"adr005_magic_numbers.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.090859000}
+,
+    {"name":"execution_time.bats","status":1,"passed":0,"failed":1,"skipped":0,"duration":.088238000}
+,
+    {"name":"package_manager.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.927239000}
+,
+    {"name":"platform_compatibility.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":3.567782000}
+,
+    {"name":"test_optimization_config.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.273884000}
+  ],
+  "failed_tests": [
+    "adr001_shell_architecture.bats"
+,
+    "adr002_bash_compatibility.bats"
+,
+    "adr003_dependency_management.bats"
+,
+    "adr004_cross_platform.bats"
+,
+    "adr005_magic_numbers.bats"
+,
+    "execution_time.bats"
+  ],
+  "performance": [
+  ],
+  "ci": {
+    "environment": "local",
+    "system": "Darwin",
+    "platform": "arm64",
+    "timestamp": "2025-05-03 08:08:59",
+    "repository": "mvnimble",
+    "branch": "main",
+    "commit": "unknown"
+  }
+}

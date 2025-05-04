@@ -1,0 +1,15 @@
+Hardware:
+
+    Hardware Overview:
+
+      Model Name: MacBook Pro
+      Model Identifier: MacBookPro18,3
+      Chip: Apple M1 Pro
+      Total Number of Cores: 10 (8 performance and 2 efficiency)
+      Memory: 32 GB
+      System Firmware Version: 10151.60.47
+      OS Loader Version: 10151.60.47
+      Serial Number: ABCDEFGHIJK
+      Hardware UUID: 12345678-9ABC-DEF0-1234-56789ABCDEF0
+      Provisioning UDID: 00000000-0000-0000-0000-000000000000
+      Activation Lock Status: Enabled

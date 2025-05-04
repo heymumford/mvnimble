@@ -1,0 +1,10 @@
+#!/bin/bash
+# mvnimble
+# Command-line wrapper for the MVNimble utility
+
+# Determine the installation directory - hardcoded to the target location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_DIR="${SCRIPT_DIR}/.."
+
+# Execute the main script
+exec "${INSTALL_DIR}/src/lib/mvnimble.sh" "$@"

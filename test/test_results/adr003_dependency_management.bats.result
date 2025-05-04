@@ -1,0 +1,48 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 2.194829000
+[34;1madr003_dependency_management.bats
+[0m[1G   Centralized dependency checking module exists[K[75G 1/19[2G[1G ✓ Centralized dependency checking module exists[K
+[0m[1G   Essential commands verification works[K[75G 2/19[2G[31;1m[1G ✗ Essential commands verification works[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 59)
+[0m[31;22m     `ESSENTIAL_COMMANDS="echo ls grep"' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/functional/adr003_dependency_management.bats: line 59: ESSENTIAL_COMMANDS: readonly variable
+[0m[1G   Java version verification handles different formats[K[75G 3/19[2G[31;1m[1G ✗ Java version verification handles different formats[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 87)
+[0m[31;22m     `MINIMUM_JAVA_VERSION=8' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/functional/adr003_dependency_management.bats: line 87: MINIMUM_JAVA_VERSION: readonly variable
+[0m[1G   Package manager detection returns valid value[K[75G 4/19[2G[1G ✓ Package manager detection returns valid value[K
+[0m[1G   Installation instructions are provided for packages[K[75G 5/19[2G[1G ✓ Installation instructions are provided for packages[K
+[0m[1G   Dependency errors are reported clearly[K[75G 6/19[2G[31;1m[1G ✗ Dependency errors are reported clearly[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 202)
+[0m[31;22m     `MINIMUM_JAVA_VERSION=8' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/functional/adr003_dependency_management.bats: line 202: MINIMUM_JAVA_VERSION: readonly variable
+[0m[1G   verify_all_dependencies combines multiple checks[K[75G 7/19[2G[1G ✓ verify_all_dependencies combines multiple checks[K
+[0m[1G   check_and_offer_install handles MVNIMBLE_NONINTERACTIVE[K[75G 8/19[2G[1G ✓ check_and_offer_install handles MVNIMBLE_NONINTERACTIVE[K
+[0m[1G   System resource checks fail with inadequate resources[K[75G 9/19[2G[1G - System resource checks fail with inadequate resources (skipped: Required functions not found)[K
+[0m[1G   Maven project validation checks for pom.xml[K[75G10/19[2G[1G ✓ Maven project validation checks for pom.xml[K
+[0m[1G   Write permission validation works[K[75G11/19[2G[1G ✓ Write permission validation works[K
+[0m[1G   ShellCheck validation is optional[K[75G12/19[2G[1G ✓ ShellCheck validation is optional[K
+[0m[1G   Platform compatibility check is just a warning[K[75G13/19[2G[1G ✓ Platform compatibility check is just a warning[K
+[0m[1G   Error messages are clear and actionable[K[75G14/19[2G[31;1m[1G ✗ Error messages are clear and actionable[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 405)
+[0m[31;22m     `local ESSENTIAL_COMMANDS="nonexistent_command_xyz"' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/functional/adr003_dependency_management.bats: line 405: local: ESSENTIAL_COMMANDS: readonly variable
+[0m[1G   Fail-fast approach for critical dependencies[K[75G15/19[2G[31;1m[1G ✗ Fail-fast approach for critical dependencies[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 441)
+[0m[31;22m     `ESSENTIAL_COMMANDS="nonexistent_command_xyz bash"' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/functional/adr003_dependency_management.bats: line 441: ESSENTIAL_COMMANDS: readonly variable
+[0m[1G   Package manager update command is available[K[75G16/19[2G[1G ✓ Package manager update command is available[K
+[0m[1G   ADR-003 implementation matches documentation[K[75G17/19[2G[1G ✓ ADR-003 implementation matches documentation[K
+[0m[1G   Installation attempt works when auto-install is enabled[K[75G18/19[2G[1G ✓ Installation attempt works when auto-install is enabled[K
+[0m[1G   Clear distinction between essential and optional dependencies[K[75G19/19[2G[31;1m[1G ✗ Clear distinction between essential and optional dependencies[K
+[0m[31;22m   (in test file test/bats/functional/adr003_dependency_management.bats, line 586)
+[0m[31;22m     `grep -q "OPTIONAL_COMMANDS" "${MODULE_DIR}/constants.sh"' failed
+[0m[31;1m
+19 tests, 6 failures, 1 skipped
+[0m

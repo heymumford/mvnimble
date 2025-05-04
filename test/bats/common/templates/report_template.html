@@ -1,0 +1,480 @@
+<\!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVNimble Test Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .timestamp {
+            font-size: 14px;
+            color: #adb5bd;
+            margin-top: 5px;
+        }
+        
+        .summary-cards {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            flex: 1 0 200px;
+            margin: 10px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card.success {
+            border-top: 4px solid #28a745;
+        }
+        
+        .card.warning {
+            border-top: 4px solid #ffc107;
+        }
+        
+        .card.danger {
+            border-top: 4px solid #dc3545;
+        }
+        
+        .card.info {
+            border-top: 4px solid #17a2b8;
+        }
+        
+        .card-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin: 0 0 5px 0;
+        }
+        
+        .card-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        section h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 20px;
+        }
+        
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .chart-item {
+            flex: 1 0 300px;
+            margin: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        table th {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        
+        .test-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .test-status {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .test-status.success {
+            color: #28a745;
+        }
+        
+        .test-status.danger {
+            color: #dc3545;
+        }
+        
+        .test-name {
+            flex: 1;
+            font-family: monospace;
+        }
+        
+        .test-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .tag {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background-color: #e9ecef;
+        }
+        
+        .tag.functional {
+            background-color: #d0f0fd;
+            color: #0c5460;
+        }
+        
+        .tag.nonfunctional {
+            background-color: #ffeeba;
+            color: #856404;
+        }
+        
+        .tag.positive {
+            background-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .tag.negative {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        details {
+            margin-bottom: 20px;
+        }
+        
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .details-content {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .ci-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .ci-info h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 600px) {
+            .summary-cards {
+                flex-direction: column;
+            }
+            
+            .chart-container {
+                flex-direction: column;
+            }
+            
+            .test-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MVNimble Test Report</h1>
+            <div class="timestamp">Generated: {{TIMESTAMP}}</div>
+        </header>
+        
+        <div class="summary-cards">
+            <div class="card info">
+                <div class="card-title">Total Tests</div>
+                <div class="card-value">{{TOTAL_TESTS}}</div>
+            </div>
+            <div class="card success">
+                <div class="card-title">Passed</div>
+                <div class="card-value">{{PASSED_TESTS}}</div>
+            </div>
+            <div class="card danger">
+                <div class="card-title">Failed</div>
+                <div class="card-value">{{FAILED_TESTS}}</div>
+            </div>
+            <div class="card warning">
+                <div class="card-title">Skipped</div>
+                <div class="card-value">{{SKIPPED_TESTS}}</div>
+            </div>
+            <div class="card info">
+                <div class="card-title">Duration</div>
+                <div class="card-value">{{DURATION}}s</div>
+            </div>
+        </div>
+        
+        <section>
+            <h2>Test Distribution</h2>
+            <div class="chart-container">
+                <div class="chart-item">
+                    <h3>By Test Type</h3>
+                    <canvas id="typeChart"></canvas>
+                </div>
+                <div class="chart-item">
+                    <h3>By Test Strategy</h3>
+                    <canvas id="strategyChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>Test Coverage</h2>
+            <div class="chart-container">
+                <div class="chart-item">
+                    <h3>By ADR</h3>
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Tests</th>
+                        </tr>
+                        {{ADR_ROWS}}
+                    </table>
+                </div>
+                <div class="chart-item">
+                    <h3>By Component</h3>
+                    <canvas id="componentChart"></canvas>
+                    <table>
+                        <tr>
+                            <th>Component</th>
+                            <th>Tests</th>
+                        </tr>
+                        {{COMPONENT_ROWS}}
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        {{FAILURES_SECTION}}
+        
+        <section>
+            <h2>Test List</h2>
+            <div class="test-items">
+                {{TEST_ITEMS}}
+            </div>
+        </section>
+        
+        <section>
+            <h2>Performance Metrics</h2>
+            <canvas id="performanceChart"></canvas>
+        </section>
+        
+        {{CI_INFO}}
+        
+        <footer>
+            <p>MVNimble Test Framework &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Type distribution chart
+        const typeCtx = document.getElementById('typeChart').getContext('2d');
+        const typeChart = new Chart(typeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Functional', 'Non-functional'],
+                datasets: [{
+                    data: [{{FUNCTIONAL_COUNT}}, {{NONFUNCTIONAL_COUNT}}],
+                    backgroundColor: ['#d0f0fd', '#ffeeba'],
+                    borderColor: ['#0c5460', '#856404'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Strategy distribution chart
+        const strategyCtx = document.getElementById('strategyChart').getContext('2d');
+        const strategyChart = new Chart(strategyCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Positive', 'Negative'],
+                datasets: [{
+                    data: [{{POSITIVE_COUNT}}, {{NEGATIVE_COUNT}}],
+                    backgroundColor: ['#c3e6cb', '#f5c6cb'],
+                    borderColor: ['#155724', '#721c24'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Component distribution chart
+        const componentCtx = document.getElementById('componentChart').getContext('2d');
+        const componentChart = new Chart(componentCtx, {
+            type: 'bar',
+            data: {
+                labels: [{{COMPONENT_LABELS}}],
+                datasets: [{
+                    label: 'Tests',
+                    data: [{{COMPONENT_DATA}}],
+                    backgroundColor: '#17a2b8',
+                    borderColor: '#138496',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Performance chart
+        const perfCtx = document.getElementById('performanceChart').getContext('2d');
+        const labels = [{{PERFORMANCE_LABELS}}];
+        const data = [{{PERFORMANCE_DATA}}];
+        
+        if (labels.length > 0 && data.length > 0) {
+            const perfChart = new Chart(perfCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Test Duration (seconds)',
+                        data: data,
+                        backgroundColor: '#20c997',
+                        borderColor: '#1ba87e',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('performanceChart').parentNode.innerHTML = '<p>No performance data available</p>';
+        }
+    </script>
+</body>
+</html>
+EOL < /dev/null

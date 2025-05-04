@@ -1,0 +1,1 @@
+Linux ubuntu-server 6.2.0-39-generic #40~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Nov 16 10:53:04 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux

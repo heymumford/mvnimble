@@ -1,0 +1,41 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 2.372275000
+[34;1madr005_magic_numbers.bats
+[0m[1G   Dedicated constants module exists[K[75G 1/21[2G[1G ✓ Dedicated constants module exists[K
+[0m[1G   Constants are organized into logical categories[K[75G 2/21[2G[1G ✓ Constants are organized into logical categories[K
+[0m[1G   Constants are declared as readonly[K[75G 3/21[2G[1G ✓ Constants are declared as readonly[K
+[0m[1G   Constants follow UPPERCASE_WITH_UNDERSCORES naming convention[K[75G 4/21[2G[31;1m[1G ✗ Constants follow UPPERCASE_WITH_UNDERSCORES naming convention[K
+[0m[31;22m   (in test file test/bats/functional/adr005_magic_numbers.bats, line 130)
+[0m[31;22m     `invalid_constants=$(grep -c -E "^readonly [a-z]" "$constants_file")' failed
+[0m[1G   Constants have descriptive names[K[75G 5/21[2G[1G ✓ Constants have descriptive names[K
+[0m[1G   Constants have descriptive comments[K[75G 6/21[2G[1G ✓ Constants have descriptive comments[K
+[0m[1G   Other modules source the constants module[K[75G 7/21[2G[1G ✓ Other modules source the constants module[K
+[0m[1G   No hardcoded color values outside constants.sh[K[75G 8/21[2G[31;1m[1G ✗ No hardcoded color values outside constants.sh[K
+[0m[31;22m   (in test file test/bats/functional/adr005_magic_numbers.bats, line 197)
+[0m[31;22m     `[ "$status" -eq 0 ]' failed
+[0m[1G   Required constants are defined[K[75G 9/21[2G[31;1m[1G ✗ Required constants are defined[K
+[0m[31;22m   (in test file test/bats/functional/adr005_magic_numbers.bats, line 217)
+[0m[31;22m     `grep -q "readonly $const=$" "${MODULE_DIR}/constants.sh" && return 1' failed
+[0m[1G   Constants have appropriate types[K[75G10/21[2G[1G ✓ Constants have appropriate types[K
+[0m[1G   No magic numbers in code outside constants.sh[K[75G11/21[2G[1G ✓ No magic numbers in code outside constants.sh[K
+[0m[1G   Derived constants are used where appropriate[K[75G12/21[2G[31;1m[1G ✗ Derived constants are used where appropriate[K
+[0m[31;22m   (in test file test/bats/functional/adr005_magic_numbers.bats, line 293)
+[0m[31;22m     `derived_constants=$(grep -c -E "readonly [A-Z][A-Z0-9_]+=.*\$[A-Z][A-Z0-9_]+" "$constants_file")' failed
+[0m[1G   Constants are used consistently throughout the codebase[K[75G13/21[2G[1G ✓ Constants are used consistently throughout the codebase[K
+[0m[1G   Creating code with magic numbers is rejected[K[75G14/21[2G[1G ✓ Creating code with magic numbers is rejected[K
+[0m[1G   Constants have clear, descriptive naming[K[75G15/21[2G[1G ✓ Constants have clear, descriptive naming[K
+[0m[1G   Constants module is well-documented[K[75G16/21[2G[1G ✓ Constants module is well-documented[K
+[0m[1G   Main script sources the constants module[K[75G17/21[2G[1G ✓ Main script sources the constants module[K
+[0m[1G   Version information is properly defined[K[75G18/21[2G[1G ✓ Version information is properly defined[K
+[0m[1G   Exit codes are properly defined[K[75G19/21[2G[1G ✓ Exit codes are properly defined[K
+[0m[1G   Terminal color definitions are complete[K[75G20/21[2G[1G ✓ Terminal color definitions are complete[K
+[0m[1G   ADR-005 implementation matches documentation[K[75G21/21[2G[1G ✓ ADR-005 implementation matches documentation[K
+[0m[31;1m
+21 tests, 4 failures
+[0m

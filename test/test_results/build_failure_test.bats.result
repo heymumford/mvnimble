@@ -1,0 +1,25 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: .536670000
+[34;1mbuild_failure_test.bats
+[0m[1G   Real-time analyzer module exists for build failure analysis[K[77G1/7[2G[31;1m[1G ✗ Real-time analyzer module exists for build failure analysis[K
+[0m[31;22m   (in test file test/bats/validation/monitoring/build_failure_test.bats, line 26)
+[0m[31;22m     `assert [ -f "${ROOT_DIR}/src/lib/modules/real_time_analyzer.sh" ]' failed with status 127
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/validation/monitoring/build_failure_test.bats: line 26: assert: command not found
+[0m[1G   Build failure analysis functions are defined[K[77G2/7[2G[31;1m[1G ✗ Build failure analysis functions are defined[K
+[0m[31;22m   (in test file test/bats/validation/monitoring/build_failure_test.bats, line 35)
+[0m[31;22m     `assert_success' failed with status 127
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/validation/monitoring/build_failure_test.bats: line 35: assert_success: command not found
+[0m[1G   Simulated build failure can be analyzed[K[77G3/7[2G[1G - Simulated build failure can be analyzed (skipped: Build failure analysis functions not yet implemented)[K
+[0m[1G   Build error patterns can be recognized[K[77G4/7[2G[1G - Build error patterns can be recognized (skipped: Error pattern recognition not yet implemented)[K
+[0m[1G   Resource usage correlates with build failures[K[77G5/7[2G[1G - Resource usage correlates with build failures (skipped: Resource correlation for build failures not yet implemented)[K
+[0m[1G   Recommendations are generated for build failures[K[77G6/7[2G[1G - Recommendations are generated for build failures (skipped: Recommendation generation for build failures not yet implemented)[K
+[0m[1G   End-to-end build failure analysis workflow[K[77G7/7[2G[1G - End-to-end build failure analysis workflow (skipped: End-to-end build failure analysis not yet implemented)[K
+[0m[31;1m
+7 tests, 2 failures, 5 skipped
+[0m

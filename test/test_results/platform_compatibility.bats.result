@@ -1,0 +1,56 @@
+status: 0
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 3.431691000
+[34;1mplatform_compatibility.bats
+[0m
+Environment helpers loaded
+Environment helpers loaded
+[1G   Should correctly detect macOS environment[K[75G 1/21[2G[1G ✓ Should correctly detect macOS environment[K
+[0mEnvironment helpers loaded
+[1G   Should correctly detect Linux environment[K[75G 2/21[2G[1G ✓ Should correctly detect Linux environment[K
+[0mEnvironment helpers loaded
+[1G   Should detect container environment[K[75G 3/21[2G[1G ✓ Should detect container environment[K
+[0mEnvironment helpers loaded
+[1G   Should get correct CPU count on macOS[K[75G 4/21[2G[1G ✓ Should get correct CPU count on macOS[K
+[0mEnvironment helpers loaded
+[1G   Should get correct CPU count on Linux[K[75G 5/21[2G[1G ✓ Should get correct CPU count on Linux[K
+[0mEnvironment helpers loaded
+[1G   Should correctly determine Java version[K[75G 6/21[2G[1G ✓ Should correctly determine Java version[K
+[0mEnvironment helpers loaded
+[1G   Should handle missing Java gracefully[K[75G 7/21[2G[1G - Should handle missing Java gracefully (skipped: This test requires more complex mocking)[K
+[0mEnvironment helpers loaded
+[1G   Should detect Maven installation[K[75G 8/21[2G[1G ✓ Should detect Maven installation[K
+[0mEnvironment helpers loaded
+[1G   Should get correct Maven version[K[75G 9/21[2G[1G ✓ Should get correct Maven version[K
+[0mEnvironment helpers loaded
+[1G   Should detect if running in CI environment[K[75G10/21[2G[1G ✓ Should detect if running in CI environment[K
+[0mEnvironment helpers loaded
+[1G   Should optimize thread count based on available CPUs[K[75G11/21[2G[1G ✓ Should optimize thread count based on available CPUs[K
+[0mEnvironment helpers loaded
+[1G   Should optimize memory settings based on available memory[K[75G12/21[2G[1G ✓ Should optimize memory settings based on available memory[K
+[0mEnvironment helpers loaded
+[1G   Should detect available disk space[K[75G13/21[2G[1G ✓ Should detect available disk space[K
+[0mEnvironment helpers loaded
+[1G   Should generate optimized Maven command for platform[K[75G14/21[2G[1G ✓ Should generate optimized Maven command for platform[K
+[0mEnvironment helpers loaded
+[1G   Should fail gracefully on unsupported platforms[K[75G15/21[2G[1G - Should fail gracefully on unsupported platforms (skipped: This test requires more complex mocking)[K
+[0mEnvironment helpers loaded
+[1G   Should detect platform quickly (under 100ms)[K[75G16/21[2G[1G ✓ Should detect platform quickly (under 100ms)[K
+[0mEnvironment helpers loaded
+[1G   Should detect network connectivity[K[75G17/21[2G[1G ✓ Should detect network connectivity[K
+[0mEnvironment helpers loaded
+[1G   Should handle network connectivity failures[K[75G18/21[2G[1G - Should handle network connectivity failures (skipped: This test requires more complex mocking)[K
+[0mEnvironment helpers loaded
+[1G   Should detect when running in Docker container[K[75G19/21[2G[1G ✓ Should detect when running in Docker container[K
+[0mEnvironment helpers loaded
+[1G   Should detect when running in Kubernetes pod[K[75G20/21[2G[1G ✓ Should detect when running in Kubernetes pod[K
+[0mEnvironment helpers loaded
+[1G   Should apply correct platform-specific optimizations[K[75G21/21[2G[1G ✓ Should apply correct platform-specific optimizations[K
+[0m[32;1m
+21 tests, 0 failures, 3 skipped
+[0m

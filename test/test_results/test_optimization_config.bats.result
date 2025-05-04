@@ -1,0 +1,42 @@
+status: 0
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 1.021241000
+[34;1mtest_optimization_config.bats
+[0m
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+[1G   optimization_config_generator.bash should exist and be executable[K[77G1/9[2G[1G ✓ optimization_config_generator.bash should exist and be executable[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   analyze_test_execution should detect bottlenecks correctly[K[77G2/9[2G[1G ✓ analyze_test_execution should detect bottlenecks correctly[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_settings_xml should create a valid Maven settings file[K[77G3/9[2G[1G ✓ generate_settings_xml should create a valid Maven settings file[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_pom_snippet should create valid Maven POM configuration[K[77G4/9[2G[1G ✓ generate_pom_snippet should create valid Maven POM configuration[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_maven_opts should create a valid shell script with JVM options[K[77G5/9[2G[1G ✓ generate_maven_opts should create a valid shell script with JVM options[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_multimodule_strategy should create a valid strategy document[K[77G6/9[2G[1G ✓ generate_multimodule_strategy should create a valid strategy document[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_optimization_summary should create a comprehensive report[K[77G7/9[2G[1G ✓ generate_optimization_summary should create a comprehensive report[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   generate_mvnimble_config should create all expected files[K[77G8/9[2G[1G ✓ generate_mvnimble_config should create all expected files[K
+[0mbats-support load stub called
+bats-assert load stub called
+[1G   help message should be displayed when no arguments provided[K[77G9/9[2G[1G ✓ help message should be displayed when no arguments provided[K
+[0m[32;1m
+9 tests, 0 failures
+[0m

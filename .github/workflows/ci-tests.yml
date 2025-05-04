@@ -1,0 +1,210 @@
+name: MVNimble CI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_tags:
+        description: 'Test tags to run (comma-separated, e.g., functional,positive)'
+        required: false
+        default: ''
+      exclude_tags:
+        description: 'Test tags to exclude (comma-separated)'
+        required: false
+        default: ''
+      report_format:
+        description: 'Report format'
+        required: false
+        default: 'html'
+        type: choice
+        options:
+          - html
+          - json
+          - markdown
+          - tap
+
+jobs:
+  shellcheck:
+    name: ShellCheck Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install ShellCheck
+        run: sudo apt-get install -y shellcheck
+      
+      - name: Run ShellCheck
+        run: |
+          find . -type f -name "*.sh" -exec shellcheck -x {} \; || true
+          # We use || true to prevent failing the workflow, but we'll report findings
+
+  test-linux:
+    name: Test on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install BATS
+        run: |
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+          bats --version
+      
+      - name: Run tests
+        run: |
+          TAGS="${{ github.event.inputs.test_tags }}"
+          EXCLUDE="${{ github.event.inputs.exclude_tags }}"
+          FORMAT="${{ github.event.inputs.report_format || 'html' }}"
+          
+          # Ensure test results directory exists
+          mkdir -p test/test_results
+          
+          # Run tests with non-interactive CI mode
+          cd "$GITHUB_WORKSPACE"
+          ./test/run_bats_tests.sh --ci --non-interactive \
+            ${TAGS:+--tags "$TAGS"} \
+            ${EXCLUDE:+--exclude-tags "$EXCLUDE"} \
+            --report "$FORMAT"
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-linux
+          path: |
+            test/test_results/*.md
+            test/test_results/*.json
+            test/test_results/*.html
+            test/test_results/*.tap
+  
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install BATS
+        run: |
+          brew install bats-core
+          bats --version
+      
+      - name: Run tests
+        run: |
+          TAGS="${{ github.event.inputs.test_tags }}"
+          EXCLUDE="${{ github.event.inputs.exclude_tags }}"
+          FORMAT="${{ github.event.inputs.report_format || 'html' }}"
+          
+          # Ensure test results directory exists
+          mkdir -p test/test_results
+          
+          # Run tests with non-interactive CI mode
+          cd "$GITHUB_WORKSPACE"
+          ./test/run_bats_tests.sh --ci --non-interactive \
+            ${TAGS:+--tags "$TAGS"} \
+            ${EXCLUDE:+--exclude-tags "$EXCLUDE"} \
+            --report "$FORMAT"
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-macos
+          path: |
+            test/test_results/*.md
+            test/test_results/*.json
+            test/test_results/*.html
+            test/test_results/*.tap
+
+  publish-results:
+    name: Publish Test Results
+    needs: [test-linux, test-macos]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+        with:
+          path: all-test-results
+      
+      - name: Create consolidated report
+        run: |
+          # Install any needed dependencies for report generation
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
+          # Create output directory
+          mkdir -p consolidated-report
+          
+          # Find the latest HTML report from each platform
+          LINUX_HTML=$(find all-test-results/test-results-linux -name "*.html" | sort | tail -1)
+          MACOS_HTML=$(find all-test-results/test-results-macos -name "*.html" | sort | tail -1)
+          
+          # Find the latest JSON report from each platform
+          LINUX_JSON=$(find all-test-results/test-results-linux -name "*.json" | sort | tail -1)
+          MACOS_JSON=$(find all-test-results/test-results-macos -name "*.json" | sort | tail -1)
+          
+          # Copy reports to consolidated directory
+          cp "$LINUX_HTML" consolidated-report/linux-test-report.html || echo "No Linux HTML report found"
+          cp "$MACOS_HTML" consolidated-report/macos-test-report.html || echo "No macOS HTML report found"
+          cp "$LINUX_JSON" consolidated-report/linux-test-report.json || echo "No Linux JSON report found"
+          cp "$MACOS_JSON" consolidated-report/macos-test-report.json || echo "No macOS JSON report found"
+          
+          # Create simple index page
+          cat > consolidated-report/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>MVNimble Test Reports</title>
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+              h1 { color: #333; }
+              .report-link { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+              .report-link a { text-decoration: none; color: #0366d6; }
+              .timestamp { color: #666; font-size: 0.8em; }
+            </style>
+          </head>
+          <body>
+            <h1>MVNimble Test Reports</h1>
+            <p>Generated at $(date '+%Y-%m-%d %H:%M:%S')</p>
+            
+            <h2>HTML Reports</h2>
+            <div class="report-link">
+              <a href="linux-test-report.html">Linux Test Report</a>
+              <div class="timestamp">$(stat -c %y "$LINUX_HTML" 2>/dev/null || echo "Not available")</div>
+            </div>
+            <div class="report-link">
+              <a href="macos-test-report.html">macOS Test Report</a>
+              <div class="timestamp">$(stat -c %y "$MACOS_HTML" 2>/dev/null || echo "Not available")</div>
+            </div>
+            
+            <h2>JSON Reports</h2>
+            <div class="report-link">
+              <a href="linux-test-report.json">Linux Test Report (JSON)</a>
+              <div class="timestamp">$(stat -c %y "$LINUX_JSON" 2>/dev/null || echo "Not available")</div>
+            </div>
+            <div class="report-link">
+              <a href="macos-test-report.json">macOS Test Report (JSON)</a>
+              <div class="timestamp">$(stat -c %y "$MACOS_JSON" 2>/dev/null || echo "Not available")</div>
+            </div>
+          </body>
+          </html>
+          EOF
+      
+      - name: Upload consolidated report
+        uses: actions/upload-artifact@v3
+        with:
+          name: consolidated-test-reports
+          path: consolidated-report/
+      
+      - name: Publish test results as GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./consolidated-report
+          destination_dir: test-reports
+          enable_jekyll: false

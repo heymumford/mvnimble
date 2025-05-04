@@ -1,0 +1,81 @@
+{
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 17.830553000
+  },
+  "tags": {
+    "functional": 0,
+    "nonfunctional": 0,
+    "positive": 0,
+    "negative": 0,
+    "adrs": [
+      { "id": "ADR 000", "count": 0 }
+,
+      { "id": "ADR 001", "count": 0 }
+,
+      { "id": "ADR 002", "count": 0 }
+,
+      { "id": "ADR 003", "count": 0 }
+,
+      { "id": "ADR 004", "count": 0 }
+,
+      { "id": "ADR 005", "count": 0 }
+    ],
+    "components": {
+      "core": 0,
+      "platform": 0,
+      "dependency": 0,
+      "reporting": 0,
+      "package_manager": 0,
+      "env_detection": 0
+    }
+  },
+  "tests": [
+    {"name":"adr000_adr_process.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.047116000}
+,
+    {"name":"adr001_shell_architecture.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.686874000}
+,
+    {"name":"adr002_bash_compatibility.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":.266487000}
+,
+    {"name":"adr003_dependency_management.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.168570000}
+,
+    {"name":"adr004_cross_platform.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.067448000}
+,
+    {"name":"adr005_magic_numbers.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":2.152826000}
+,
+    {"name":"educational_effectiveness_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.089469000}
+,
+    {"name":"execution_time.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.018731000}
+,
+    {"name":"gold_standard_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.091876000}
+,
+    {"name":"package_manager.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":1.862870000}
+,
+    {"name":"platform_compatibility.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":3.351799000}
+,
+    {"name":"test_optimization_config.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.940211000}
+,
+    {"name":"thread_safety_test.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":.086276000}
+  ],
+  "failed_tests": [
+    "adr002_bash_compatibility.bats"
+,
+    "adr003_dependency_management.bats"
+,
+    "adr005_magic_numbers.bats"
+  ],
+  "performance": [
+  ],
+  "ci": {
+    "environment": "local",
+    "system": "Darwin",
+    "platform": "arm64",
+    "timestamp": "2025-05-03 21:14:07",
+    "repository": "mvnimble",
+    "branch": "main",
+    "commit": "unknown"
+  }
+}

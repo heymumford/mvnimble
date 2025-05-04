@@ -1,0 +1,21 @@
+status: 0
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: .637496000
+[34;1mvalidation_test.bats
+[0m[1G   Validation: Framework directories exist[K[77G1/9[2G[1G ✓ Validation: Framework directories exist[K
+[0m[1G   Validation: Main scripts exist and are executable[K[77G2/9[2G[1G ✓ Validation: Main scripts exist and are executable[K
+[0m[1G   Validation: Integration script exists and is executable[K[77G3/9[2G[1G ✓ Validation: Integration script exists and is executable[K
+[0m[1G   Validation: BATS test files exist[K[77G4/9[2G[1G ✓ Validation: BATS test files exist[K
+[0m[1G   Validation: README files exist[K[77G5/9[2G[1G ✓ Validation: README files exist[K
+[0m[1G   Validation: Scripts have proper file mode[K[77G6/9[2G[1G ✓ Validation: Scripts have proper file mode[K
+[0m[1G   Validation: BATS test files have proper shebang[K[77G7/9[2G[1G ✓ Validation: BATS test files have proper shebang[K
+[0m[1G   Validation: No syntax errors in bash scripts[K[77G8/9[2G[1G ✓ Validation: No syntax errors in bash scripts[K
+[0m[1G   Validation: Integration test includes all components[K[77G9/9[2G[1G ✓ Validation: Integration test includes all components[K
+[0m[32;1m
+9 tests, 0 failures
+[0m
