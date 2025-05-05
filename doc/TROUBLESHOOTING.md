@@ -13,7 +13,7 @@ This guide helps you solve common problems with MVNimble.
 **Solutions:**
 1. Make sure installation completed successfully:
    ```bash
-   ./install-simple.sh
+   ./bin/install/install-simple.sh
    ```
 2. Check if MVNimble is in your PATH:
    ```bash
@@ -41,7 +41,7 @@ Error: Required dependency 'jq' not found
    ```
 2. Run installation with dependency check:
    ```bash
-   ./install-with-fix.sh
+   ./bin/install/install-with-fix.sh
    ```
 
 ## Runtime Problems

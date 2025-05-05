@@ -18,10 +18,10 @@ As a QA engineer, MVNimble helps you:
 
 ```bash
 # Simple installation
-./install-simple.sh
+./bin/install/install-simple.sh
 
 # Or with additional diagnostic tools
-./install-with-fix.sh
+./bin/install/install-with-fix.sh
 ```
 
 ### First Test Run

@@ -14,10 +14,10 @@ MVNimble is a lightweight tool that helps QA engineers identify and diagnose fla
 
 ```bash
 # Quick installation
-./install-simple.sh
+./bin/install/install-simple.sh
 
 # Installation with additional diagnostic tools
-./install-with-fix.sh
+./bin/install/install-with-fix.sh
 ```
 
 ## Quick Start
@@ -62,14 +62,14 @@ MVNimble generates reports in multiple formats:
 
 For more detailed information, see:
 
-- [Complete Installation Guide](./doc/INSTALLATION.md)
-- [Detailed Usage Guide](./doc/USAGE.md)
-- [Reporting Options](./doc/REPORTING.md)
-- [Troubleshooting Guide](./doc/TROUBLESHOOTING.md)
+- [Complete Installation Guide](doc/INSTALLATION.md)
+- [Detailed Usage Guide](doc/USAGE.md)
+- [Reporting Options](doc/REPORTING.md)
+- [Troubleshooting Guide](doc/TROUBLESHOOTING.md)
 
 ## Support
 
 If you encounter any issues, please:
-1. Check the [Troubleshooting Guide](./doc/TROUBLESHOOTING.md)
+1. Check the [Troubleshooting Guide](doc/TROUBLESHOOTING.md)
 2. Look through existing GitHub issues
 3. Open a new issue with the test output and environment details

@@ -116,7 +116,7 @@ Add MVNimble to your CI pipeline:
 
 ```bash
 # In your CI script
-./install-simple.sh
+./bin/install/install-simple.sh
 mvnimble mvn test
 mvnimble report --format html
 

@@ -26,7 +26,7 @@ For standard installations:
 
 ```bash
 # Download and run the simple installer
-./install-simple.sh
+./bin/install/install-simple.sh
 ```
 
 This will:
@@ -40,7 +40,7 @@ For a more complete installation with additional diagnostic tools:
 
 ```bash
 # Download and run the enhanced installer
-./install-with-fix.sh
+./bin/install/install-with-fix.sh
 ```
 
 This includes everything in the simple installation plus:
