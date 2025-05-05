@@ -91,7 +91,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [options]"
+      echo "Usage: $0 [options] [DIRECTORY]"
       echo
       echo "Options:"
       echo "  --system         Install MVNimble system-wide (requires root)"
@@ -102,7 +102,22 @@ while [[ $# -gt 0 ]]; do
       echo "  --test-tags=TAGS Run only tests with specific tags"
       echo "  --test-report    Generate test report"
       echo "  --help           Show this help message"
+      echo
+      echo "You can also provide an installation directory as a positional argument:"
+      echo "  $0 /path/to/install/dir"
       exit 0
+      ;;
+    /*|~*|.*)
+      # Handle directory path as a positional parameter
+      if [[ -z "$CUSTOM_INSTALL_DIR" && -d "$(dirname "$1")" ]]; then
+        CUSTOM_INSTALL_DIR="$1"
+        print_success "Using custom installation directory: $CUSTOM_INSTALL_DIR"
+        shift
+      else
+        print_error "Unknown option or invalid directory path: $1"
+        echo "Use --help for usage information"
+        exit 1
+      fi
       ;;
     *)
       print_error "Unknown option: $1"
@@ -142,6 +157,11 @@ print_header "Installing Files"
 # Copy core files
 echo "Copying library files..."
 cp -r "${SCRIPT_DIR}/lib/"* "$INSTALL_DIR/lib/" 2>/dev/null || true
+
+# Create modules directory and copy module files
+echo "Copying module files..."
+mkdir -p "$INSTALL_DIR/lib/modules" 2>/dev/null || true
+cp -r "${SCRIPT_DIR}/src/lib/modules/"* "$INSTALL_DIR/lib/modules/" 2>/dev/null || true
 
 # Copy bin scripts
 echo "Copying executable scripts..."

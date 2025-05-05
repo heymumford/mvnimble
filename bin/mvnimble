@@ -146,6 +146,13 @@ function main() {
     exit 0
   fi
 
+  # Handle direct mvn command (e.g., mvnimble mvn test)
+  if [ "$1" = "mvn" ]; then
+    # Forward to monitor command with default settings
+    monitor_maven_build "./mvnimble-results" 5 3600 "$@"
+    exit $?
+  fi
+
   # Process the command
   case "$1" in
     monitor)
