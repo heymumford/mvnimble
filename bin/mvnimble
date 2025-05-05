@@ -1,24 +1,75 @@
 #!/usr/bin/env bash
 # MVNimble - Maven test optimization utility
 # Main entry point script
+# Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
 
 # Ensure script fails on error
 set -e
 
 # Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the parent directory (project root)
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-# Library path
-LIB_DIR="${PROJECT_ROOT}/lib"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+# Try to find the installation directory
+# First, check if we have a configuration file
+if [[ -f "$SCRIPT_DIR/../mvnimble.conf" ]]; then
+  # Source the configuration file to get MVNIMBLE_INSTALL_DIR
+  source "$SCRIPT_DIR/../mvnimble.conf"
+  if [[ -n "$MVNIMBLE_INSTALL_DIR" ]]; then
+    # Use the configured installation directory
+    INSTALL_DIR="$MVNIMBLE_INSTALL_DIR"
+    LIB_DIR="${INSTALL_DIR}/lib"
+  else
+    # Fall back to relative path
+    INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+    LIB_DIR="${INSTALL_DIR}/lib"
+  fi
+else
+  # Fall back to relative path
+  INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+  LIB_DIR="${INSTALL_DIR}/lib"
+  
+  # Check if lib directory exists, if not try common installation locations
+  if [[ ! -d "$LIB_DIR" ]]; then
+    # Try common installation locations
+    for dir in \
+      "/usr/local/opt/mvnimble" \
+      "/usr/local/share/mvnimble" \
+      "/opt/mvnimble" \
+      "${HOME}/.mvnimble"; do
+      if [[ -d "${dir}/lib" ]]; then
+        INSTALL_DIR="$dir"
+        LIB_DIR="${INSTALL_DIR}/lib"
+        break
+      fi
+    done
+  fi
+fi
+
+# Verify the lib directory exists
+if [[ ! -d "$LIB_DIR" ]]; then
+  echo "Error: Cannot find MVNimble library directory." >&2
+  echo "Please ensure MVNimble is properly installed." >&2
+  exit 1
+fi
 
 # Source required libraries
-source "${LIB_DIR}/constants.sh"
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/environment.sh"
-source "${LIB_DIR}/monitor.sh"
-source "${LIB_DIR}/analyze.sh"
-source "${LIB_DIR}/report.sh"
+LIBS_LOADED=0
+for lib in "constants.sh" "common.sh" "environment.sh" "monitor.sh" "analyze.sh" "report.sh"; do
+  if [[ -f "${LIB_DIR}/${lib}" ]]; then
+    source "${LIB_DIR}/${lib}"
+    LIBS_LOADED=$((LIBS_LOADED + 1))
+  else
+    echo "Warning: Could not find ${lib} in ${LIB_DIR}" >&2
+  fi
+done
+
+# Verify that all required libraries were loaded
+if [[ $LIBS_LOADED -lt 6 ]]; then
+  echo "Error: Not all required MVNimble libraries could be loaded." >&2
+  echo "Please ensure MVNimble is properly installed." >&2
+  exit 1
+fi
 
 # Print version information
 function print_version() {
@@ -48,6 +99,10 @@ function print_help() {
 # Verify environment and installation
 function verify_environment() {
   print_header "Verifying MVNimble Environment"
+  
+  # Check installation
+  echo "Installation directory: $INSTALL_DIR"
+  echo "Library directory: $LIB_DIR"
   
   # Check for required tools
   local missing_tools=false

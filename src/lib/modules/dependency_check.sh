@@ -163,6 +163,60 @@ verify_bashate_installation() {
   return 0
 }
 
+# Verify XMLStarlet installation or install it
+verify_xmlstarlet_installation() {
+  # Check if XMLStarlet is installed
+  if ! command -v xmlstarlet >/dev/null 2>&1 && ! command -v xml >/dev/null 2>&1; then
+    echo "XMLStarlet is required for XML processing but is not installed." >&2
+    echo "Would you like to install XMLStarlet? (y/n)" >&2
+    read -r choice
+    
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+      install_xmlstarlet
+      if ! command -v xmlstarlet >/dev/null 2>&1 && ! command -v xml >/dev/null 2>&1; then
+        echo "Failed to install XMLStarlet. Please install it manually." >&2
+        return 1
+      fi
+      echo "XMLStarlet installed successfully." >&2
+    else
+      echo "XMLStarlet installation skipped. Some features may not work correctly." >&2
+      return 1
+    fi
+  fi
+  
+  return 0
+}
+
+# Install XMLStarlet based on package manager
+install_xmlstarlet() {
+  # Detect package manager
+  local pkg_mgr=$(detect_package_manager)
+  
+  case "$pkg_mgr" in
+    "$PKG_MGR_APT")
+      sudo apt-get update && sudo apt-get install -y xmlstarlet
+      ;;
+    "$PKG_MGR_BREW")
+      brew install xmlstarlet
+      ;;
+    "$PKG_MGR_YUM"|"$PKG_MGR_DNF")
+      sudo yum install -y xmlstarlet
+      ;;
+    "$PKG_MGR_PACMAN")
+      sudo pacman -S --noconfirm xmlstarlet
+      ;;
+    "$PKG_MGR_ZYPPER")
+      sudo zypper install -y xmlstarlet
+      ;;
+    *)
+      echo "Unsupported package manager. Please install XMLStarlet manually." >&2
+      return 1
+      ;;
+  esac
+  
+  return 0
+}
+
 # Verify system resources
 verify_system_resources() {
   # Check available memory
@@ -279,6 +333,7 @@ verify_all_dependencies() {
   # Optional checks
   verify_shellcheck_installation "$check_shellcheck" || true # Optional
   verify_bashate_installation "$check_bashate" || true # Optional
+  verify_xmlstarlet_installation || ((errors++)) # Required for XML processing
   
   # Return results
   if [[ "$errors" -gt 0 ]]; then

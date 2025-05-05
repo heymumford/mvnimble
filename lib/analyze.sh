@@ -23,6 +23,24 @@ if [[ -z "${CONSTANTS_LOADED+x}" ]]; then
 fi
 source "${SCRIPT_DIR}/common.sh"
 
+# Check if xml_utils.sh exists in the modules directory (new path structure)
+if [[ -f "${SCRIPT_DIR}/modules/xml_utils.sh" ]]; then
+  source "${SCRIPT_DIR}/modules/xml_utils.sh"
+# Check for the src/lib/modules path (development path structure)
+elif [[ -f "${SCRIPT_DIR}/../src/lib/modules/xml_utils.sh" ]]; then
+  source "${SCRIPT_DIR}/../src/lib/modules/xml_utils.sh"
+# Finally check in the same directory (flat structure)
+elif [[ -f "${SCRIPT_DIR}/xml_utils.sh" ]]; then
+  source "${SCRIPT_DIR}/xml_utils.sh"
+else
+  echo "WARNING: xml_utils.sh not found. XML parsing will use legacy methods." >&2
+  # Define a simple function to check if XMLStarlet is available
+  xml_starlet_available() {
+    command -v xmlstarlet >/dev/null 2>&1 || command -v xml >/dev/null 2>&1
+    return $?
+  }
+fi
+
 # Analyze build data and generate reports
 function analyze_build_data() {
   local input_dir="$1"
@@ -241,23 +259,31 @@ function generate_build_recommendations() {
     echo ""
     echo "### Surefire Configuration"
     echo ""
-    echo "```xml"
-    echo "<plugin>"
-    echo "  <groupId>org.apache.maven.plugins</groupId>"
-    echo "  <artifactId>maven-surefire-plugin</artifactId>"
-    echo "  <configuration>"
-    echo "    <forkCount>${recommended_fork_count}</forkCount>"
-    echo "    <reuseForks>true</reuseForks>"
-    echo "    <argLine>-Xmx${recommended_memory}m</argLine>"
-    echo "  </configuration>"
-    echo "</plugin>"
-    echo "```"
+    
+    # Use xml_utils.sh if available, otherwise fall back to legacy approach
+    if type xml_generate_surefire_config >/dev/null 2>&1; then
+      echo "```xml"
+      xml_generate_surefire_config "$recommended_fork_count" "true" "-Xmx${recommended_memory}m" "classes" "$recommended_fork_count"
+      echo "```"
+    else
+      echo "```xml"
+      echo "<plugin>"
+      echo "  <groupId>org.apache.maven.plugins</groupId>"
+      echo "  <artifactId>maven-surefire-plugin</artifactId>"
+      echo "  <configuration>"
+      echo "    <forkCount>${recommended_fork_count}</forkCount>"
+      echo "    <reuseForks>true</reuseForks>"
+      echo "    <argLine>-Xmx${recommended_memory}m</argLine>"
+      echo "  </configuration>"
+      echo "</plugin>"
+      echo "```"
+    fi
     echo ""
     echo "## Performance Optimization Tips"
     echo ""
     echo "1. Group tests by category to enable parallel execution"
     echo "2. Avoid test interdependencies"
-    echo "3. Use `@Category` annotations for better test organization"
+    echo "3. Use \`\\@Category\` annotations for better test organization"
     echo "4. Consider using JUnit 5 for improved parallel test execution"
     echo ""
     echo "---"
@@ -272,54 +298,68 @@ function generate_build_recommendations() {
 function detect_test_dimensions() {
   # Check for various test dimension frameworks
   if [ -f "pom.xml" ]; then
-    # Check for JUnit Jupiter
-    if grep -q "junit-jupiter" pom.xml; then
-      echo "junit5=true"
+    # Check if XMLStarlet functions are available
+    if type xml_detect_test_frameworks >/dev/null 2>&1; then
+      # Use XMLStarlet for test framework detection
+      xml_detect_test_frameworks "pom.xml"
     else
-      echo "junit5=false"
-    fi
-    
-    # Check for custom test dimensions
-    if grep -q "test.dimension" pom.xml; then
-      echo "custom_dimensions=true"
+      # Fall back to legacy grep-based approach
+      # Check for JUnit Jupiter
+      if grep -q "junit-jupiter" pom.xml; then
+        echo "junit5=true"
+      else
+        echo "junit5=false"
+      fi
       
-      # Extract dimension types
-      DIMENSION_PATTERNS=$(grep -A 30 "<profile>" pom.xml | grep "test.dimension=" | sort | uniq | cut -d= -f2 | cut -d'<' -f1 | tr -d ' ')
-      echo "dimension_patterns=$DIMENSION_PATTERNS"
-    else
-      echo "custom_dimensions=false"
-    fi
-    
-    # Check for TestNG
-    if grep -q "<artifactId>testng</artifactId>" pom.xml; then
-      echo "testng=true"
-    else
-      echo "testng=false"
+      # Check for custom test dimensions
+      if grep -q "test.dimension" pom.xml; then
+        echo "custom_dimensions=true"
+        
+        # Extract dimension types
+        DIMENSION_PATTERNS=$(grep -A 30 "<profile>" pom.xml | grep "test.dimension=" | sort | uniq | cut -d= -f2 | cut -d'<' -f1 | tr -d ' ')
+        echo "dimension_patterns=$DIMENSION_PATTERNS"
+      else
+        echo "custom_dimensions=false"
+      fi
+      
+      # Check for TestNG
+      if grep -q "<artifactId>testng</artifactId>" pom.xml; then
+        echo "testng=true"
+      else
+        echo "testng=false"
+      fi
     fi
   fi
 }
 
 # Function to get Maven settings from pom.xml
 function get_maven_settings() {
-  if grep -q "<jvm.fork.count>" pom.xml; then
-    ORIGINAL_FORK_COUNT=$(grep -E "<jvm.fork.count>" pom.xml | grep -oE "[0-9.]+C?" || echo "1.0C")
+  # Check if XMLStarlet functions are available
+  if type xml_get_maven_settings >/dev/null 2>&1; then
+    # Use XMLStarlet for Maven settings extraction
+    xml_get_maven_settings "pom.xml"
   else
-    ORIGINAL_FORK_COUNT="1.0C"
+    # Fall back to legacy grep-based approach
+    if grep -q "<jvm.fork.count>" pom.xml; then
+      ORIGINAL_FORK_COUNT=$(grep -E "<jvm.fork.count>" pom.xml | grep -oE "[0-9.]+C?" || echo "1.0C")
+    else
+      ORIGINAL_FORK_COUNT="1.0C"
+    fi
+    
+    if grep -q "<maven.threads>" pom.xml; then
+      ORIGINAL_MAVEN_THREADS=$(grep -E "<maven.threads>" pom.xml | grep -oE "[0-9]+" | head -1 || echo "1")
+    else
+      ORIGINAL_MAVEN_THREADS="1"
+    fi
+    
+    if grep -q "<jvm.fork.memory>" pom.xml; then
+      ORIGINAL_FORK_MEMORY=$(grep -E "<jvm.fork.memory>" pom.xml | grep -oE "[0-9]+M?" || echo "256M")
+    else
+      ORIGINAL_FORK_MEMORY="256M"
+    fi
+    
+    echo "fork_count=$ORIGINAL_FORK_COUNT,threads=$ORIGINAL_MAVEN_THREADS,memory=$ORIGINAL_FORK_MEMORY"
   fi
-  
-  if grep -q "<maven.threads>" pom.xml; then
-    ORIGINAL_MAVEN_THREADS=$(grep -E "<maven.threads>" pom.xml | grep -oE "[0-9]+" | head -1 || echo "1")
-  else
-    ORIGINAL_MAVEN_THREADS="1"
-  fi
-  
-  if grep -q "<jvm.fork.memory>" pom.xml; then
-    ORIGINAL_FORK_MEMORY=$(grep -E "<jvm.fork.memory>" pom.xml | grep -oE "[0-9]+M?" || echo "256M")
-  else
-    ORIGINAL_FORK_MEMORY="256M"
-  fi
-  
-  echo "fork_count=$ORIGINAL_FORK_COUNT,threads=$ORIGINAL_MAVEN_THREADS,memory=$ORIGINAL_FORK_MEMORY"
 }
 
 # Update pom.xml with specific settings
@@ -328,32 +368,46 @@ function update_pom() {
   local threads=$2
   local heap_size=$3
   
-  # Create a backup if it doesn't exist
-  if [[ ! -f "pom.xml.mvnimblebackup" ]]; then
-    cp pom.xml pom.xml.mvnimblebackup
+  # Check if XMLStarlet functions are available
+  if type xml_update_maven_config >/dev/null 2>&1; then
+    # Use XMLStarlet for POM modification
+    xml_update_maven_config "pom.xml" "$fork_count" "$threads" "$heap_size"
+  else
+    # Fall back to legacy sed-based approach
+    # Create a backup if it doesn't exist
+    if [[ ! -f "pom.xml.mvnimblebackup" ]]; then
+      cp pom.xml pom.xml.mvnimblebackup
+    fi
+    
+    # Update pom.xml
+    if grep -q "<jvm.fork.count>" pom.xml; then
+      sed -i.tmp "s/<jvm.fork.count>[^<]*<\/jvm.fork.count>/<jvm.fork.count>${fork_count}<\/jvm.fork.count>/" pom.xml
+    fi
+    
+    if grep -q "<maven.threads>" pom.xml; then
+      sed -i.tmp "s/<maven.threads>[^<]*<\/maven.threads>/<maven.threads>${threads}<\/maven.threads>/" pom.xml
+    fi
+    
+    if grep -q "<jvm.fork.memory>" pom.xml; then
+      sed -i.tmp "s/<jvm.fork.memory>[^<]*<\/jvm.fork.memory>/<jvm.fork.memory>${heap_size}M<\/jvm.fork.memory>/" pom.xml
+    fi
+    
+    rm -f pom.xml.tmp
   fi
-  
-  # Update pom.xml
-  if grep -q "<jvm.fork.count>" pom.xml; then
-    sed -i.tmp "s/<jvm.fork.count>[^<]*<\/jvm.fork.count>/<jvm.fork.count>${fork_count}<\/jvm.fork.count>/" pom.xml
-  fi
-  
-  if grep -q "<maven.threads>" pom.xml; then
-    sed -i.tmp "s/<maven.threads>[^<]*<\/maven.threads>/<maven.threads>${threads}<\/maven.threads>/" pom.xml
-  fi
-  
-  if grep -q "<jvm.fork.memory>" pom.xml; then
-    sed -i.tmp "s/<jvm.fork.memory>[^<]*<\/jvm.fork.memory>/<jvm.fork.memory>${heap_size}M<\/jvm.fork.memory>/" pom.xml
-  fi
-  
-  rm -f pom.xml.tmp
 }
 
 # Restore original pom.xml
 function restore_pom() {
-  if [ -f "pom.xml.mvnimblebackup" ]; then
-    cp pom.xml.mvnimblebackup pom.xml
-    print_success "Restored original pom.xml settings"
+  # Check if XMLStarlet functions are available
+  if type xml_restore_pom >/dev/null 2>&1; then
+    # Use XMLStarlet for POM restoration
+    xml_restore_pom "pom.xml"
+  else
+    # Fall back to legacy approach
+    if [ -f "pom.xml.mvnimblebackup" ]; then
+      cp pom.xml.mvnimblebackup pom.xml
+      print_success "Restored original pom.xml settings"
+    fi
   fi
 }
 
@@ -381,65 +435,114 @@ function analyze_pom_file() {
     echo "### Maven Surefire Configuration"
     echo ""
     
-    # Check for Surefire configuration
-    if grep -q "maven-surefire-plugin" "$pom_file"; then
-      echo "Maven Surefire Plugin configuration found."
+    # Check if XMLStarlet functions are available
+    if type xml_extract_surefire_config >/dev/null 2>&1; then
+      # Use XMLStarlet for POM analysis
+      local surefire_config=$(xml_extract_surefire_config "$pom_file")
+      local fork_count=$(echo "$surefire_config" | grep -o "fork_count=.*" | cut -d',' -f1 | cut -d'=' -f2)
+      local reuse_forks=$(echo "$surefire_config" | grep -o "reuse_forks=.*" | cut -d',' -f1 | cut -d'=' -f2)
+      local arg_line=$(echo "$surefire_config" | grep -o "arg_line=.*" | cut -d',' -f1 | cut -d'=' -f2)
       
-      # Extract forkCount settings
-      if grep -q "<forkCount>" "$pom_file"; then
-        local fork_count=$(grep -A 1 "<forkCount>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
+      if [[ "$fork_count" != "Not specified (defaults to 1)" ]]; then
+        echo "Maven Surefire Plugin configuration found."
         echo "* Fork Count: $fork_count"
-      else
-        echo "* Fork Count: Not specified (defaults to 1)"
-      fi
-      
-      # Extract reuseForks settings
-      if grep -q "<reuseForks>" "$pom_file"; then
-        local reuse_forks=$(grep -A 1 "<reuseForks>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
         echo "* Reuse Forks: $reuse_forks"
-      else
-        echo "* Reuse Forks: Not specified (defaults to true)"
-      fi
-      
-      # Extract argLine settings
-      if grep -q "<argLine>" "$pom_file"; then
-        local arg_line=$(grep -A 1 "<argLine>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
         echo "* JVM Args: $arg_line"
       else
-        echo "* JVM Args: Not specified"
+        echo "No Maven Surefire Plugin configuration found."
       fi
     else
-      echo "No Maven Surefire Plugin configuration found."
+      # Fall back to legacy grep-based approach
+      if grep -q "maven-surefire-plugin" "$pom_file"; then
+        echo "Maven Surefire Plugin configuration found."
+        
+        # Extract forkCount settings
+        if grep -q "<forkCount>" "$pom_file"; then
+          local fork_count=$(grep -A 1 "<forkCount>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
+          echo "* Fork Count: $fork_count"
+        else
+          echo "* Fork Count: Not specified (defaults to 1)"
+        fi
+        
+        # Extract reuseForks settings
+        if grep -q "<reuseForks>" "$pom_file"; then
+          local reuse_forks=$(grep -A 1 "<reuseForks>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
+          echo "* Reuse Forks: $reuse_forks"
+        else
+          echo "* Reuse Forks: Not specified (defaults to true)"
+        fi
+        
+        # Extract argLine settings
+        if grep -q "<argLine>" "$pom_file"; then
+          local arg_line=$(grep -A 1 "<argLine>" "$pom_file" | tail -1 | sed 's/.*>\(.*\)<.*/\1/')
+          echo "* JVM Args: $arg_line"
+        else
+          echo "* JVM Args: Not specified"
+        fi
+      else
+        echo "No Maven Surefire Plugin configuration found."
+      fi
     fi
     
     echo ""
     echo "### Dependency Analysis"
     echo ""
     
-    # Check for common test frameworks
-    if grep -q "junit" "$pom_file"; then
-      echo "* JUnit: Enabled"
+    # Check if XMLStarlet functions are available
+    if type xml_detect_test_frameworks >/dev/null 2>&1; then
+      # Use XMLStarlet for dependency analysis
+      local frameworks=$(xml_detect_test_frameworks "$pom_file")
+      local junit5=$(echo "$frameworks" | grep -o "junit5=.*" | cut -d',' -f1 | cut -d'=' -f2)
+      local testng=$(echo "$frameworks" | grep -o "testng=.*" | cut -d',' -f1 | cut -d'=' -f2)
       
-      # Check JUnit version
-      if grep -q "junit-jupiter" "$pom_file"; then
+      if [[ "$junit5" == "true" ]]; then
+        echo "* JUnit: Enabled"
         echo "  * Version: JUnit 5 (Jupiter)"
-      elif grep -q "<artifactId>junit</artifactId>" "$pom_file"; then
+      elif xml_element_exists "$pom_file" "//project/dependencies/dependency/artifactId[text()='junit']"; then
+        echo "* JUnit: Enabled"
         echo "  * Version: JUnit 4"
+      else
+        echo "* JUnit: Not found"
+      fi
+      
+      if [[ "$testng" == "true" ]]; then
+        echo "* TestNG: Enabled"
+      else
+        echo "* TestNG: Not found"
+      fi
+      
+      if xml_element_exists "$pom_file" "//project/dependencies/dependency/artifactId[text()='mockito-core']" || 
+         xml_element_exists "$pom_file" "//project/dependencies/dependency/artifactId[text()='mockito-junit-jupiter']"; then
+        echo "* Mockito: Enabled"
+      else
+        echo "* Mockito: Not found"
       fi
     else
-      echo "* JUnit: Not found"
-    fi
-    
-    if grep -q "testng" "$pom_file"; then
-      echo "* TestNG: Enabled"
-    else
-      echo "* TestNG: Not found"
-    fi
-    
-    if grep -q "mockito" "$pom_file"; then
-      echo "* Mockito: Enabled"
-    else
-      echo "* Mockito: Not found"
+      # Fall back to legacy grep-based approach
+      if grep -q "junit" "$pom_file"; then
+        echo "* JUnit: Enabled"
+        
+        # Check JUnit version
+        if grep -q "junit-jupiter" "$pom_file"; then
+          echo "  * Version: JUnit 5 (Jupiter)"
+        elif grep -q "<artifactId>junit</artifactId>" "$pom_file"; then
+          echo "  * Version: JUnit 4"
+        fi
+      else
+        echo "* JUnit: Not found"
+      fi
+      
+      if grep -q "testng" "$pom_file"; then
+        echo "* TestNG: Enabled"
+      else
+        echo "* TestNG: Not found"
+      fi
+      
+      if grep -q "mockito" "$pom_file"; then
+        echo "* Mockito: Enabled"
+      else
+        echo "* Mockito: Not found"
+      fi
     fi
     
     echo ""
@@ -453,23 +556,23 @@ function analyze_pom_file() {
     local recommended_fork_count=$((cpu_cores > 1 ? cpu_cores : 1))
     
     echo "1. **Parallelism**: Configure Maven Surefire Plugin for parallel execution"
-    echo "   ```xml"
-    echo "   <forkCount>${recommended_fork_count}</forkCount>"
-    echo "   <reuseForks>true</reuseForks>"
-    echo "   <parallel>classes</parallel>"
-    echo "   <threadCount>${recommended_fork_count}</threadCount>"
-    echo "   ```"
+    echo "   \\`\\`\\`xml"
+    echo "   \\<forkCount\\>${recommended_fork_count}\\</forkCount\\>"
+    echo "   \\<reuseForks\\>true\\</reuseForks\\>"
+    echo "   \\<parallel\\>classes\\</parallel\\>"
+    echo "   \\<threadCount\\>${recommended_fork_count}\\</threadCount\\>"
+    echo "   \\`\\`\\`"
     echo ""
     echo "2. **Memory Settings**: Optimize JVM memory allocation"
-    echo "   ```xml"
-    echo "   <argLine>-Xmx1024m -XX:+UseG1GC</argLine>"
-    echo "   ```"
+    echo "   \\`\\`\\`xml"
+    echo "   \\<argLine\\>-Xmx1024m -XX:+UseG1GC\\</argLine\\>"
+    echo "   \\`\\`\\`"
     echo ""
     echo "3. **Test Organization**: Group tests by category to enable selective execution"
-    echo "   ```xml"
-    echo "   <groups>UnitTest,FastTest</groups>"
-    echo "   <excludedGroups>IntegrationTest,SlowTest</excludedGroups>"
-    echo "   ```"
+    echo "   \\`\\`\\`xml"
+    echo "   \\<groups\\>UnitTest,FastTest\\</groups\\>"
+    echo "   \\<excludedGroups\\>IntegrationTest,SlowTest\\</excludedGroups\\>"
+    echo "   \\`\\`\\`"
     echo ""
     
     echo "---"

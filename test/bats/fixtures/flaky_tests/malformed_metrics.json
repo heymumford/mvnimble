@@ -1,0 +1,14 @@
+{
+  "runs": [
+    {
+      "id": "run-001"
+      "timestamp": "2025-05-04T10:15:23-04:00",
+      "success": false,
+      "metrics": {
+        "cpu_usage": 23.5,
+        "memory_usage": 512.6,
+        "disk_io": 12.3,
+        "network_io": 5.6,
+      }
+    },
+}

@@ -1,0 +1,59 @@
+{
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 10.380382000
+  },
+  "tags": {
+    "functional": 0,
+    "nonfunctional": 0,
+    "positive": 0,
+    "negative": 0,
+    "adrs": [
+      { "id": "ADR 000", "count": 0 }
+,
+      { "id": "ADR 001", "count": 0 }
+,
+      { "id": "ADR 002", "count": 0 }
+,
+      { "id": "ADR 003", "count": 0 }
+,
+      { "id": "ADR 004", "count": 0 }
+,
+      { "id": "ADR 005", "count": 0 }
+    ],
+    "components": {
+      "core": 0,
+      "platform": 0,
+      "dependency": 0,
+      "reporting": 0,
+      "package_manager": 0,
+      "env_detection": 0
+    }
+  },
+  "tests": [
+    {"name":"test_flaky_test_detector_error_handling.bats","status":0,"passed":0,"failed":0,"skipped":0,"duration":2.490826000}
+,
+    {"name":"test_thread_visualizer_edge_cases.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":3.776285000}
+,
+    {"name":"test_thread_visualizer_error_handling.bats","status":1,"passed":0,"failed":0,"skipped":0,"duration":4.113271000}
+  ],
+  "failed_tests": [
+    "test_thread_visualizer_edge_cases.bats"
+,
+    "test_thread_visualizer_error_handling.bats"
+  ],
+  "performance": [
+  ],
+  "ci": {
+    "environment": "local",
+    "system": "Darwin",
+    "platform": "arm64",
+    "timestamp": "2025-05-05 07:59:35",
+    "repository": "mvnimble",
+    "branch": "main",
+    "commit": "unknown"
+  }
+}

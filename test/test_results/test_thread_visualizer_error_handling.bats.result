@@ -1,0 +1,68 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 3.952386000
+[34;1mtest_thread_visualizer_error_handling.bats
+[0m
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles missing input file[K[75G 1/14[2G[1G ✓ thread visualizer handles missing input file[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles empty input file[K[75G 2/14[2G[1G ✓ thread visualizer handles empty input file[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles invalid JSON file[K[75G 3/14[2G[1G ✓ thread visualizer handles invalid JSON file[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles JSON without thread data[K[75G 4/14[2G[31;1m[1G ✗ thread visualizer handles JSON without thread data[K
+[0m[31;22m   (from function `assert_output' in file test/bats/unit/error_handling/test_thread_visualizer_error_handling.bats, line 11,
+[0m[31;22m    in test file test/bats/unit/error_handling/test_thread_visualizer_error_handling.bats, line 122)
+[0m[31;22m     `assert_output --partial "No threads found"' failed
+[0m[31;22m   Expected 'No threads found' to be in output: [0;33mWarning: No thread data found in input file: /var/folders/3b/c4p1r6sj1vd9y689wrpkrnhh0000gn/T/bats-run-APkbJ9/test/4/no_threads.json[0m
+[0m[31;22m   [0;32mGenerated thread diagram: /var/folders/3b/c4p1r6sj1vd9y689wrpkrnhh0000gn/T/bats-run-APkbJ9/test/4/output.md[0m
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles missing output directory[K[75G 5/14[2G[1G ✓ thread visualizer handles missing output directory[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles read-only output directory[K[75G 6/14[2G[1G ✓ thread visualizer handles read-only output directory[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles missing jq dependency[K[75G 7/14[2G[1G ✓ thread visualizer handles missing jq dependency[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles malformed thread data[K[75G 8/14[2G[1G ✓ thread visualizer handles malformed thread data[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   deadlock detection handles invalid input[K[75G 9/14[2G[1G ✓ deadlock detection handles invalid input[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   deadlock detection handles thread dump with no locks[K[75G10/14[2G[31;1m[1G ✗ deadlock detection handles thread dump with no locks[K
+[0m[31;22m   (from function `assert_output' in file test/bats/unit/error_handling/test_thread_visualizer_error_handling.bats, line 11,
+[0m[31;22m    in test file test/bats/unit/error_handling/test_thread_visualizer_error_handling.bats, line 245)
+[0m[31;22m     `assert_output --partial "No deadlocks detected"' failed
+[0m[31;22m   Expected 'No deadlocks detected' to be in output: /Users/vorthruna/Code/mvnimble/src/lib/modules/thread_visualizer.sh: line 801: print_info: command not found
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles large thread dumps[K[75G11/14[2G
+Large thread dump size:   214861 bytes
+[2A[1G ✓ thread visualizer handles large thread dumps[K
+[0m[1Bbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles thread names with unusual characters[K[75G12/14[2G[1G ✓ thread visualization handles thread names with unusual characters[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization works with minimum required parameters[K[75G13/14[2G[1G ✓ thread visualization works with minimum required parameters[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   lock contention graph handles lock names with special characters[K[75G14/14[2G[1G ✓ lock contention graph handles lock names with special characters[K
+[0m[31;1m
+14 tests, 2 failures
+[0m

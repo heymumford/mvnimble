@@ -1,0 +1,126 @@
+{
+  "runs": [
+    {
+      "id": "run-001",
+      "timestamp": "2025-05-04T10:15:23-04:00",
+      "success": false,
+      "metrics": {
+        "cpu_usage": 23.5,
+        "memory_usage": 512.6,
+        "disk_io": 12.3,
+        "network_io": 5.6,
+        "test_failures": [
+          {
+            "test_class": "io.checkvox.service.TimingDependentServiceTest",
+            "test_method": "testAsyncResponseProcessing",
+            "type": "ASSERTION_ERROR",
+            "stack_trace_summary": "Expected: is <true> but: was <false>"
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-002",
+      "timestamp": "2025-05-04T10:18:43-04:00",
+      "success": false,
+      "metrics": {
+        "cpu_usage": 45.2,
+        "memory_usage": 842.1,
+        "disk_io": 5.6,
+        "network_io": 3.2,
+        "test_failures": [
+          {
+            "test_class": "io.checkvox.service.ConnectionPoolServiceTest",
+            "test_method": "testConcurrentConnections",
+            "type": "TIMEOUT_EXCEPTION",
+            "stack_trace_summary": "Timeout waiting for connection"
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-003",
+      "timestamp": "2025-05-04T10:22:18-04:00",
+      "success": false,
+      "metrics": {
+        "cpu_usage": 18.9,
+        "memory_usage": 487.3,
+        "disk_io": 8.7,
+        "network_io": 4.1,
+        "test_failures": [
+          {
+            "test_class": "io.checkvox.service.ConfigDependentServiceTest",
+            "test_method": "testConfigBasedProcessing",
+            "type": "ASSERTION_ERROR",
+            "stack_trace_summary": "Service expected to be in production mode"
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-004",
+      "timestamp": "2025-05-04T10:25:14-04:00",
+      "success": false,
+      "metrics": {
+        "cpu_usage": 67.8,
+        "memory_usage": 923.5,
+        "disk_io": 15.6,
+        "network_io": 8.2,
+        "test_failures": [
+          {
+            "test_class": "io.checkvox.service.ConcurrentServiceTest",
+            "test_method": "testConcurrentModification",
+            "type": "ASSERTION_ERROR",
+            "stack_trace_summary": "Expected: <100> but: was <98>"
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-005",
+      "timestamp": "2025-05-04T10:30:42-04:00",
+      "success": true,
+      "metrics": {
+        "cpu_usage": 24.6,
+        "memory_usage": 534.8,
+        "disk_io": 9.3,
+        "network_io": 4.8,
+        "test_failures": []
+      }
+    }
+  ],
+  "environment_variables": [
+    {
+      "name": "TEST_ENV",
+      "run-001": "dev",
+      "run-002": "dev",
+      "run-003": "staging",
+      "run-004": "dev",
+      "run-005": "dev"
+    },
+    {
+      "name": "MEMORY_LIMIT",
+      "run-001": "1024m",
+      "run-002": "512m",
+      "run-003": "1024m",
+      "run-004": "1024m",
+      "run-005": "1024m"
+    },
+    {
+      "name": "MAX_CONNECTIONS",
+      "run-001": "20",
+      "run-002": "10",
+      "run-003": "20",
+      "run-004": "20",
+      "run-005": "20"
+    },
+    {
+      "name": "ASYNC_TIMEOUT",
+      "run-001": "1000",
+      "run-002": "2000",
+      "run-003": "2000",
+      "run-004": "2000",
+      "run-005": "2000"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 3.632153000
+[34;1mtest_thread_visualizer_edge_cases.bats
+[0m
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles thread dump with no locks[K[75G 1/11[2G[1G ✓ thread visualizer handles thread dump with no locks[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles simple deadlock pattern[K[75G 2/11[2G[31;1m[1G ✗ thread visualizer handles simple deadlock pattern[K
+[0m[31;22m   (from function `assert_success' in file test/bats/unit/error_handling/test_thread_visualizer_edge_cases.bats, line 20,
+[0m[31;22m    in test file test/bats/unit/error_handling/test_thread_visualizer_edge_cases.bats, line 166)
+[0m[31;22m     `assert_success' failed
+[0m[31;22m   Expected success (status 0), got status: 1
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualizer handles complex deadlock patterns[K[75G 3/11[2G[31;1m[1G ✗ thread visualizer handles complex deadlock patterns[K
+[0m[31;22m   (from function `assert_output' in file test/bats/unit/error_handling/test_thread_visualizer_edge_cases.bats, line 11,
+[0m[31;22m    in test file test/bats/unit/error_handling/test_thread_visualizer_edge_cases.bats, line 237)
+[0m[31;22m     `assert_output --partial "DEADLOCK DETECTED"' failed
+[0m[31;22m   Expected 'DEADLOCK DETECTED' to be in output: /Users/vorthruna/Code/mvnimble/src/lib/modules/thread_visualizer.sh: line 801: print_info: command not found
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles unusual thread states[K[75G 4/11[2G[1G ✓ thread visualization handles unusual thread states[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles all standard thread states[K[75G 5/11[2G[1G ✓ thread visualization handles all standard thread states[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles minimal thread dump[K[75G 6/11[2G[1G ✓ thread visualization handles minimal thread dump[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles complex lock patterns[K[75G 7/11[2G[1G ✓ thread visualization handles complex lock patterns[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread timeline handles complex thread interactions[K[75G 8/11[2G[1G ✓ thread timeline handles complex thread interactions[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   HTML visualization includes all visualization types[K[75G 9/11[2G[1G ✓ HTML visualization includes all visualization types[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization works with actual thread dump format[K[75G10/11[2G[1G ✓ thread visualization works with actual thread dump format[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   thread visualization handles large number of locks[K[75G11/11[2G[1G ✓ thread visualization handles large number of locks[K
+[0m[31;1m
+11 tests, 2 failures
+[0m

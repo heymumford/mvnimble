@@ -1,0 +1,66 @@
+status: 0
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 2.418442000
+[34;1mtest_flaky_test_detector_error_handling.bats
+[0m
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles missing input directory[K[75G 1/17[2G[1G ✓ flaky test detector handles missing input directory[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles empty input directory[K[75G 2/17[2G[1G ✓ flaky test detector handles empty input directory[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles directory with no log files[K[75G 3/17[2G[1G ✓ flaky test detector handles directory with no log files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles malformed log files[K[75G 4/17[2G[1G ✓ flaky test detector handles malformed log files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles empty log files[K[75G 5/17[2G[1G ✓ flaky test detector handles empty log files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles read-only output directory[K[75G 6/17[2G[1G ✓ flaky test detector handles read-only output directory[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles directory with missing test results[K[75G 7/17[2G[1G ✓ flaky test detector handles directory with missing test results[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles directory with mixed build results[K[75G 8/17[2G[1G ✓ flaky test detector handles directory with mixed build results[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles path with unusual characters[K[75G 9/17[2G[1G ✓ flaky test detector handles path with unusual characters[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   analyze_flaky_test_patterns handles invalid JSON[K[75G10/17[2G[1G ✓ analyze_flaky_test_patterns handles invalid JSON[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   generate_flaky_test_report handles missing thread dump[K[75G11/17[2G[1G ✓ generate_flaky_test_report handles missing thread dump[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   compare_test_runs handles invalid inputs[K[75G12/17[2G[1G ✓ compare_test_runs handles invalid inputs[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   categorize_flaky_tests handles directory with no log files[K[75G13/17[2G[1G ✓ categorize_flaky_tests handles directory with no log files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   generate_flaky_test_report handles temp file cleanup failures[K[75G14/17[2G[1G ✓ generate_flaky_test_report handles temp file cleanup failures[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   generate_flaky_test_report warns about empty output files[K[75G15/17[2G[1G ✓ generate_flaky_test_report warns about empty output files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   categorize_flaky_tests validates generated JSON[K[75G16/17[2G[1G ✓ categorize_flaky_tests validates generated JSON[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   generate_flaky_test_report handles thread visualization output per...[K[75G17/17[2G[1G ✓ generate_flaky_test_report handles thread visualization output permissions[K
+[0m[32;1m
+17 tests, 0 failures
+[0m

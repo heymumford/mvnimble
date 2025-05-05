@@ -4,7 +4,7 @@
 # This script runs MVNimble real-time monitoring on the Checkvox project
 
 # Set the Checkvox project directory
-CHECKVOX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../Checkvox" && pwd)"
+CHECKVOX_DIR="/Users/vorthruna/Code/checkvox"
 MVNIMBLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS_DIR="${MVNIMBLE_DIR}/results/checkvox"
 

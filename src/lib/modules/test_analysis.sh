@@ -18,6 +18,18 @@ if [[ -z "${CONSTANTS_LOADED+x}" ]]; then
 fi
 source "${SCRIPT_DIR}/platform_compatibility.sh"
 
+# Check if xml_utils.sh exists
+if [[ -f "${SCRIPT_DIR}/xml_utils.sh" ]]; then
+  source "${SCRIPT_DIR}/xml_utils.sh"
+else
+  echo "WARNING: xml_utils.sh not found. XML parsing will use legacy methods." >&2
+  # Define a simple function to check if XMLStarlet is available
+  xml_starlet_available() {
+    command -v xmlstarlet >/dev/null 2>&1 || command -v xml >/dev/null 2>&1
+    return $?
+  }
+fi
+
 # ============================================================
 # Maven Test Pattern Analysis Functions
 # ============================================================
@@ -26,54 +38,68 @@ source "${SCRIPT_DIR}/platform_compatibility.sh"
 detect_test_dimensions() {
   # Check for various test dimension frameworks
   if [ -f "pom.xml" ]; then
-    # Check for JUnit Jupiter
-    if grep -q "junit-jupiter" pom.xml; then
-      echo "junit5=true"
+    # Check if XMLStarlet functions are available
+    if type xml_detect_test_frameworks >/dev/null 2>&1; then
+      # Use XMLStarlet for test framework detection
+      xml_detect_test_frameworks "pom.xml"
     else
-      echo "junit5=false"
-    fi
-    
-    # Check for custom test dimensions
-    if grep -q "test.dimension" pom.xml; then
-      echo "custom_dimensions=true"
+      # Fall back to legacy grep-based approach
+      # Check for JUnit Jupiter
+      if grep -q "junit-jupiter" pom.xml; then
+        echo "junit5=true"
+      else
+        echo "junit5=false"
+      fi
       
-      # Extract dimension types
-      DIMENSION_PATTERNS=$(grep -A 30 "<profile>" pom.xml | grep "test.dimension=" | sort | uniq | cut -d= -f2 | cut -d'<' -f1 | tr -d ' ')
-      echo "dimension_patterns=$DIMENSION_PATTERNS"
-    else
-      echo "custom_dimensions=false"
-    fi
-    
-    # Check for TestNG
-    if grep -q "<artifactId>testng</artifactId>" pom.xml; then
-      echo "testng=true"
-    else
-      echo "testng=false"
+      # Check for custom test dimensions
+      if grep -q "test.dimension" pom.xml; then
+        echo "custom_dimensions=true"
+        
+        # Extract dimension types
+        DIMENSION_PATTERNS=$(grep -A 30 "<profile>" pom.xml | grep "test.dimension=" | sort | uniq | cut -d= -f2 | cut -d'<' -f1 | tr -d ' ')
+        echo "dimension_patterns=$DIMENSION_PATTERNS"
+      else
+        echo "custom_dimensions=false"
+      fi
+      
+      # Check for TestNG
+      if grep -q "<artifactId>testng</artifactId>" pom.xml; then
+        echo "testng=true"
+      else
+        echo "testng=false"
+      fi
     fi
   fi
 }
 
 # Function to get Maven settings from pom.xml
 get_maven_settings() {
-  if grep -q "<jvm.fork.count>" pom.xml; then
-    ORIGINAL_FORK_COUNT=$(grep -E "<jvm.fork.count>" pom.xml | grep -oE "[0-9.]+C?" || echo "1.0C")
+  # Check if XMLStarlet functions are available
+  if type xml_get_maven_settings >/dev/null 2>&1; then
+    # Use XMLStarlet for Maven settings extraction
+    xml_get_maven_settings "pom.xml"
   else
-    ORIGINAL_FORK_COUNT="1.0C"
+    # Fall back to legacy grep-based approach
+    if grep -q "<jvm.fork.count>" pom.xml; then
+      ORIGINAL_FORK_COUNT=$(grep -E "<jvm.fork.count>" pom.xml | grep -oE "[0-9.]+C?" || echo "1.0C")
+    else
+      ORIGINAL_FORK_COUNT="1.0C"
+    fi
+    
+    if grep -q "<maven.threads>" pom.xml; then
+      ORIGINAL_MAVEN_THREADS=$(grep -E "<maven.threads>" pom.xml | grep -oE "[0-9]+" | head -1 || echo "1")
+    else
+      ORIGINAL_MAVEN_THREADS="1"
+    fi
+    
+    if grep -q "<jvm.fork.memory>" pom.xml; then
+      ORIGINAL_FORK_MEMORY=$(grep -E "<jvm.fork.memory>" pom.xml | grep -oE "[0-9]+M?" || echo "256M")
+    else
+      ORIGINAL_FORK_MEMORY="256M"
+    fi
+    
+    echo "fork_count=$ORIGINAL_FORK_COUNT,threads=$ORIGINAL_MAVEN_THREADS,memory=$ORIGINAL_FORK_MEMORY"
   fi
-  
-  if grep -q "<maven.threads>" pom.xml; then
-    ORIGINAL_MAVEN_THREADS=$(grep -E "<maven.threads>" pom.xml | grep -oE "[0-9]+" | head -1 || echo "1")
-  else
-    ORIGINAL_MAVEN_THREADS="1"
-  fi
-  
-  if grep -q "<jvm.fork.memory>" pom.xml; then
-    ORIGINAL_FORK_MEMORY=$(grep -E "<jvm.fork.memory>" pom.xml | grep -oE "[0-9]+M?" || echo "256M")
-  else
-    ORIGINAL_FORK_MEMORY="256M"
-  fi
-  
-  echo "fork_count=$ORIGINAL_FORK_COUNT,threads=$ORIGINAL_MAVEN_THREADS,memory=$ORIGINAL_FORK_MEMORY"
 }
 
 # Update pom.xml with specific settings
@@ -82,32 +108,46 @@ update_pom() {
   local threads=$2
   local heap_size=$3
   
-  # Create a backup if it doesn't exist
-  if [[ ! -f "pom.xml.mvnimblebackup" ]]; then
-    cp pom.xml pom.xml.mvnimblebackup
+  # Check if XMLStarlet functions are available
+  if type xml_update_maven_config >/dev/null 2>&1; then
+    # Use XMLStarlet for POM modification
+    xml_update_maven_config "pom.xml" "$fork_count" "$threads" "$heap_size"
+  else
+    # Fall back to legacy sed-based approach
+    # Create a backup if it doesn't exist
+    if [[ ! -f "pom.xml.mvnimblebackup" ]]; then
+      cp pom.xml pom.xml.mvnimblebackup
+    fi
+    
+    # Update pom.xml
+    if grep -q "<jvm.fork.count>" pom.xml; then
+      sed -i.tmp "s/<jvm.fork.count>[^<]*<\/jvm.fork.count>/<jvm.fork.count>${fork_count}<\/jvm.fork.count>/" pom.xml
+    fi
+    
+    if grep -q "<maven.threads>" pom.xml; then
+      sed -i.tmp "s/<maven.threads>[^<]*<\/maven.threads>/<maven.threads>${threads}<\/maven.threads>/" pom.xml
+    fi
+    
+    if grep -q "<jvm.fork.memory>" pom.xml; then
+      sed -i.tmp "s/<jvm.fork.memory>[^<]*<\/jvm.fork.memory>/<jvm.fork.memory>${heap_size}M<\/jvm.fork.memory>/" pom.xml
+    fi
+    
+    rm -f pom.xml.tmp
   fi
-  
-  # Update pom.xml
-  if grep -q "<jvm.fork.count>" pom.xml; then
-    sed -i.tmp "s/<jvm.fork.count>[^<]*<\/jvm.fork.count>/<jvm.fork.count>${fork_count}<\/jvm.fork.count>/" pom.xml
-  fi
-  
-  if grep -q "<maven.threads>" pom.xml; then
-    sed -i.tmp "s/<maven.threads>[^<]*<\/maven.threads>/<maven.threads>${threads}<\/maven.threads>/" pom.xml
-  fi
-  
-  if grep -q "<jvm.fork.memory>" pom.xml; then
-    sed -i.tmp "s/<jvm.fork.memory>[^<]*<\/jvm.fork.memory>/<jvm.fork.memory>${heap_size}M<\/jvm.fork.memory>/" pom.xml
-  fi
-  
-  rm -f pom.xml.tmp
 }
 
 # Restore original pom.xml
 restore_pom() {
-  if [ -f "pom.xml.mvnimblebackup" ]; then
-    cp pom.xml.mvnimblebackup pom.xml
-    echo -e "${COLOR_GREEN}Restored original pom.xml settings${COLOR_RESET}"
+  # Check if XMLStarlet functions are available
+  if type xml_restore_pom >/dev/null 2>&1; then
+    # Use XMLStarlet for POM restoration
+    xml_restore_pom "pom.xml"
+  else
+    # Fall back to legacy approach
+    if [ -f "pom.xml.mvnimblebackup" ]; then
+      cp pom.xml.mvnimblebackup pom.xml
+      echo -e "${COLOR_GREEN}Restored original pom.xml settings${COLOR_RESET}"
+    fi
   fi
 }
 

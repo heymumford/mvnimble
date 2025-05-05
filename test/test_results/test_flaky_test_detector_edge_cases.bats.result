@@ -1,0 +1,45 @@
+status: 0
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 20.037439000
+[34;1mtest_flaky_test_detector_edge_cases.bats
+[0m
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles unusually large log files[K[75G 1/10[2G[1G ✓ flaky test detector handles unusually large log files[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles unusual test names[K[75G 2/10[2G[1G ✓ flaky test detector handles unusual test names[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles mixed log patterns and formats[K[75G 3/10[2G[1G ✓ flaky test detector handles mixed log patterns and formats[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector identifies pattern differences across runs[K[75G 4/10[2G[1G ✓ flaky test detector identifies pattern differences across runs[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles logs with minimal information[K[75G 5/10[2G[1G ✓ flaky test detector handles logs with minimal information[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector generates meaningful report with limited metadata[K[75G 6/10[2G[1G ✓ flaky test detector generates meaningful report with limited metadata[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector categorizes complex patterns correctly[K[75G 7/10[2G[1G ✓ flaky test detector categorizes complex patterns correctly[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector handles extremely short test runs[K[75G 8/10[2G[1G ✓ flaky test detector handles extremely short test runs[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   compare_test_runs handles complex test runs correctly[K[75G 9/10[2G[1G ✓ compare_test_runs handles complex test runs correctly[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   flaky test detector performs full flow correctly[K[75G10/10[2G[1G ✓ flaky test detector performs full flow correctly[K
+[0m[32;1m
+10 tests, 0 failures
+[0m

@@ -1,0 +1,33 @@
+status: 1
+passed: 0
+0
+failed: 0
+0
+skipped: 0
+0
+duration: 1.983071000
+[34;1mtest_flaky_test_detector_thread_visualization_integration.bats
+[0m
+bats-assert load stub called
+bats-support load stub called
+bats-assert load stub called
+bats-support load stub called
+[1G   integration: full flow from flaky test detection to thread visualization[K[77G1/5[2G[1G ✓ integration: full flow from flaky test detection to thread visualization[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   integration: handles missing thread visualization component[K[77G2/5[2G[1G ✓ integration: handles missing thread visualization component[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   integration: handles thread visualization errors gracefully[K[77G3/5[2G[1G ✓ integration: handles thread visualization errors gracefully[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   integration: handles test data without thread visualization data[K[77G4/5[2G[1G ✓ integration: handles test data without thread visualization data[K
+[0mbats-assert load stub called
+bats-support load stub called
+[1G   integration: handles mixed error modes between modules[K[77G5/5[2G[31;1m[1G ✗ integration: handles mixed error modes between modules[K
+[0m[31;22m   (in test file test/bats/unit/error_handling/test_flaky_test_detector_thread_visualization_integration.bats, line 340)
+[0m[31;22m     `cat > "${fixture_dir}/thread_dump.json" << 'EOF'' failed
+[0m[31;22m   /Users/vorthruna/Code/mvnimble/test/bats/unit/error_handling/test_flaky_test_detector_thread_visualization_integration.bats: line 340: /var/folders/3b/c4p1r6sj1vd9y689wrpkrnhh0000gn/T/bats-run-F0A1Ax/test/5/mixed_errors/thread_dump.json: No such file or directory
+[0m[31;1m
+5 tests, 1 failure
+[0m

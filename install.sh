@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 # MVNimble Installer
-# Installs MVNimble to make it available system-wide
+# Installs MVNimble to make it available locally or system-wide
 # Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
 
 set -e
-
-# Get current working directory
-CWD="$(pwd)"
 
 # Define color output
 COLOR_RED="\033[0;31m"
@@ -33,18 +30,22 @@ function print_warning() {
   echo -e "${COLOR_YELLOW}! $1${COLOR_RESET}"
 }
 
-# Installation options
-DEFAULT_INSTALL_DIR="${CWD}/target/mvnimble"
-LOCAL_BIN_DIR="${CWD}/target/bin"
+# Get the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Installation options - Use more flexible defaults
+HOME_DIR="${HOME}"
+DEFAULT_INSTALL_DIR="${HOME_DIR}/.mvnimble"
+LOCAL_BIN_DIR="${HOME_DIR}/.local/bin"
 SYSTEM_BIN_DIR="/usr/local/bin"
-ZSH_COMPLETION_DIR="${CWD}/target/zsh/completions"
 
 # Parse command line arguments
-INSTALL_METHOD="target"  # default to target installation
+INSTALL_METHOD="local"  # default to local installation
 INTERACTIVE=true
 SKIP_TESTS=false
 TEST_TAGS=""
 TEST_REPORT=false
+CUSTOM_INSTALL_DIR=""
 
 # Print welcome message
 print_header "MVNimble Installer"
@@ -57,15 +58,20 @@ while [[ $# -gt 0 ]]; do
       print_warning "System-wide installation requested"
       if [[ "$EUID" -ne 0 ]]; then
         print_error "System-wide installation requires root privileges"
-        print_warning "Falling back to target installation method"
+        print_warning "Falling back to local installation method"
       else
         INSTALL_METHOD="system"
       fi
       shift
       ;;
     --local)
-      INSTALL_METHOD="target"
-      print_success "Using target installation method"
+      INSTALL_METHOD="local"
+      print_success "Using local installation method"
+      shift
+      ;;
+    --prefix=*)
+      CUSTOM_INSTALL_DIR="${1#*=}"
+      print_success "Using custom installation directory: $CUSTOM_INSTALL_DIR"
       shift
       ;;
     --non-interactive)
@@ -89,7 +95,8 @@ while [[ $# -gt 0 ]]; do
       echo
       echo "Options:"
       echo "  --system         Install MVNimble system-wide (requires root)"
-      echo "  --local          Install MVNimble to local target directory (default)"
+      echo "  --local          Install MVNimble to user's home directory (default)"
+      echo "  --prefix=DIR     Install MVNimble to a custom directory"
       echo "  --non-interactive Skip interactive prompts"
       echo "  --skip-tests     Skip running tests after installation"
       echo "  --test-tags=TAGS Run only tests with specific tags"
@@ -110,17 +117,14 @@ if [[ "$INSTALL_METHOD" == "system" ]]; then
   INSTALL_DIR="/usr/local/opt/mvnimble"
   BIN_DIR="$SYSTEM_BIN_DIR"
   print_warning "Installing MVNimble system-wide to $INSTALL_DIR"
+elif [[ -n "$CUSTOM_INSTALL_DIR" ]]; then
+  INSTALL_DIR="$CUSTOM_INSTALL_DIR"
+  BIN_DIR="${CUSTOM_INSTALL_DIR}/bin"
+  print_success "Installing MVNimble to custom location: $INSTALL_DIR"
 else
   INSTALL_DIR="$DEFAULT_INSTALL_DIR"
   BIN_DIR="$LOCAL_BIN_DIR"
   print_success "Installing MVNimble to $INSTALL_DIR"
-fi
-
-# Clean up existing target directory if using target installation
-if [[ "$INSTALL_METHOD" == "target" && -d "${CWD}/target" ]]; then
-  print_header "Cleaning Existing Installation"
-  rm -rf "${CWD}/target"
-  print_success "Target directory cleaned"
 fi
 
 # Create necessary directories
@@ -130,31 +134,30 @@ mkdir -p "$INSTALL_DIR/lib"
 mkdir -p "$INSTALL_DIR/doc"
 mkdir -p "$INSTALL_DIR/examples"
 mkdir -p "$BIN_DIR"
-mkdir -p "$ZSH_COMPLETION_DIR"
 
 # Install files
 print_header "Installing Files"
 
 # Copy core files
 echo "Copying library files..."
-cp -r "${CWD}/lib/"* "$INSTALL_DIR/lib/" 2>/dev/null || true
+cp -r "${SCRIPT_DIR}/lib/"* "$INSTALL_DIR/lib/" 2>/dev/null || true
 
 # Copy bin scripts
 echo "Copying executable scripts..."
-cp -r "${CWD}/bin/"* "$INSTALL_DIR/bin/" 2>/dev/null || true
+cp -r "${SCRIPT_DIR}/bin/"* "$INSTALL_DIR/bin/" 2>/dev/null || true
 
 # Copy documentation
 echo "Copying documentation..."
-cp -r "${CWD}/doc/"* "$INSTALL_DIR/doc/" 2>/dev/null || true
+cp -r "${SCRIPT_DIR}/doc/"* "$INSTALL_DIR/doc/" 2>/dev/null || true
 
 # Copy examples
 echo "Copying examples..."
-cp -r "${CWD}/examples/"* "$INSTALL_DIR/examples/" 2>/dev/null || true
+cp -r "${SCRIPT_DIR}/examples/"* "$INSTALL_DIR/examples/" 2>/dev/null || true
 
 # Copy readme files
-cp "${CWD}/README.md" "$INSTALL_DIR/" 2>/dev/null || true
-cp "${CWD}/STRUCTURE.md" "$INSTALL_DIR/" 2>/dev/null || true
-cp "${CWD}/CLAUDE.md" "$INSTALL_DIR/" 2>/dev/null || true
+cp "${SCRIPT_DIR}/README.md" "$INSTALL_DIR/" 2>/dev/null || true
+cp "${SCRIPT_DIR}/STRUCTURE.md" "$INSTALL_DIR/" 2>/dev/null || true
+cp "${SCRIPT_DIR}/CLAUDE.md" "$INSTALL_DIR/" 2>/dev/null || true
 
 # Make scripts executable
 print_header "Setting Permissions"
@@ -170,14 +173,74 @@ ln -sf "$INSTALL_DIR/bin/mvnimble-analyze" "$BIN_DIR/mvnimble-analyze"
 
 print_success "MVNimble executables installed to $BIN_DIR"
 
+# Check for XMLStarlet
+print_header "Checking Dependencies"
+
+# Check if XMLStarlet is available
+if ! command -v xmlstarlet >/dev/null 2>&1 && ! command -v xml >/dev/null 2>&1; then
+  print_warning "XMLStarlet is required for XML processing but is not installed"
+  
+  if [[ "$INTERACTIVE" == "true" ]]; then
+    read -p "Do you want to install XMLStarlet? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      print_header "Installing XMLStarlet"
+      
+      # Detect OS and install XMLStarlet
+      if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS - check if brew is available
+        if command -v brew >/dev/null 2>&1; then
+          brew install xmlstarlet
+        else
+          print_error "Homebrew not found. Please install Homebrew first:"
+          print_error "/bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+          print_error "Then install XMLStarlet manually: brew install xmlstarlet"
+        fi
+      elif [[ "$(uname)" == "Linux" ]]; then
+        # Linux - try to detect package manager
+        if command -v apt-get >/dev/null 2>&1; then
+          sudo apt-get update && sudo apt-get install -y xmlstarlet
+        elif command -v yum >/dev/null 2>&1; then
+          sudo yum install -y xmlstarlet
+        elif command -v dnf >/dev/null 2>&1; then
+          sudo dnf install -y xmlstarlet
+        elif command -v pacman >/dev/null 2>&1; then
+          sudo pacman -S --noconfirm xmlstarlet
+        elif command -v zypper >/dev/null 2>&1; then
+          sudo zypper install -y xmlstarlet
+        else
+          print_error "Cannot determine package manager. Please install XMLStarlet manually."
+        fi
+      else
+        print_error "Unsupported OS. Please install XMLStarlet manually."
+      fi
+      
+      # Check if installation was successful
+      if command -v xmlstarlet >/dev/null 2>&1 || command -v xml >/dev/null 2>&1; then
+        print_success "XMLStarlet installed successfully"
+      else
+        print_warning "Failed to install XMLStarlet. Some features may not work correctly."
+      fi
+    else
+      print_warning "XMLStarlet installation skipped. Some features may not work correctly."
+    fi
+  else
+    print_warning "Running in non-interactive mode. Skipping XMLStarlet installation."
+    print_warning "Some features may not work correctly without XMLStarlet."
+  fi
+else
+  print_success "XMLStarlet is already installed"
+fi
+
 # Set up shell completion if available
-if [[ -f "${CWD}/src/completion/_mvnimble" ]]; then
+if [[ -f "${SCRIPT_DIR}/src/completion/_mvnimble" ]]; then
   print_header "Installing Shell Completion"
   mkdir -p "$INSTALL_DIR/completion"
-  cp "${CWD}/src/completion/_mvnimble" "$INSTALL_DIR/completion/"
+  cp "${SCRIPT_DIR}/src/completion/_mvnimble" "$INSTALL_DIR/completion/"
   
-  if [[ -d "$ZSH_COMPLETION_DIR" && -w "$ZSH_COMPLETION_DIR" ]]; then
-    ln -sf "$INSTALL_DIR/completion/_mvnimble" "$ZSH_COMPLETION_DIR/_mvnimble"
+  if [[ -d "${HOME}/.zsh/completion" && -w "${HOME}/.zsh/completion" ]]; then
+    mkdir -p "${HOME}/.zsh/completion"
+    ln -sf "$INSTALL_DIR/completion/_mvnimble" "${HOME}/.zsh/completion/_mvnimble"
     print_success "ZSH completion installed"
   else
     print_warning "ZSH completion not installed automatically"
@@ -214,8 +277,8 @@ if [[ "$SKIP_TESTS" == "false" ]]; then
         git clone https://github.com/bats-core/bats-core.git
         cd bats-core || { print_error "Failed to cd to bats-core directory"; exit 1; }
         
-        # Install BATS to the target directory
-        BATS_INSTALL_DIR="${CWD}/target/bats"
+        # Install BATS to the MVNimble installation directory
+        BATS_INSTALL_DIR="${INSTALL_DIR}/tools/bats"
         mkdir -p "$BATS_INSTALL_DIR"
         ./install.sh "$BATS_INSTALL_DIR"
         
@@ -236,10 +299,10 @@ if [[ "$SKIP_TESTS" == "false" ]]; then
   
   if [[ "$SKIP_TESTS" == "false" ]]; then
     # Run tests
-    if [[ -f "${CWD}/test/run_bats_tests.sh" ]]; then
+    if [[ -f "${SCRIPT_DIR}/test/run_bats_tests.sh" ]]; then
       print_header "Running Tests"
       
-      TEST_CMD="${CWD}/test/run_bats_tests.sh"
+      TEST_CMD="${SCRIPT_DIR}/test/run_bats_tests.sh"
       
       if [[ "$INTERACTIVE" == "false" ]]; then
         TEST_CMD="${TEST_CMD} --non-interactive"
@@ -254,29 +317,59 @@ if [[ "$SKIP_TESTS" == "false" ]]; then
       fi
       
       # Make sure test script is executable
-      chmod +x "${CWD}/test/run_bats_tests.sh"
+      chmod +x "${SCRIPT_DIR}/test/run_bats_tests.sh"
       
       # Run tests
       eval "$TEST_CMD"
       
       print_success "Tests completed successfully"
     else
-      print_warning "Test script not found at ${CWD}/test/run_bats_tests.sh"
+      print_warning "Test script not found at ${SCRIPT_DIR}/test/run_bats_tests.sh"
     fi
   fi
 fi
 
+# Create configuration file to save installation location
+cat > "$INSTALL_DIR/mvnimble.conf" << EOF
+# MVNimble configuration - DO NOT EDIT MANUALLY
+MVNIMBLE_INSTALL_DIR="$INSTALL_DIR"
+MVNIMBLE_BIN_DIR="$BIN_DIR"
+MVNIMBLE_INSTALL_METHOD="$INSTALL_METHOD"
+MVNIMBLE_INSTALL_DATE="$(date '+%Y-%m-%d %H:%M:%S')"
+EOF
+
 # Print installation summary
 print_header "Installation Complete"
 
-if [[ "$INSTALL_METHOD" == "target" ]]; then
+if [[ "$INSTALL_METHOD" == "local" ]]; then
   echo "MVNimble installed to: $INSTALL_DIR"
   echo
-  echo "To use MVNimble from this installation, run:"
+  echo "To use MVNimble from this installation, add to your PATH:"
   echo "    export PATH=\"$BIN_DIR:\$PATH\""
   
-  if [[ -d "${CWD}/target/bats/bin" ]]; then
-    echo "    export PATH=\"${CWD}/target/bats/bin:\$PATH\""
+  if [[ -d "${INSTALL_DIR}/tools/bats/bin" ]]; then
+    echo "    export PATH=\"${INSTALL_DIR}/tools/bats/bin:\$PATH\""
+  fi
+
+  # Try to add to PATH automatically in common shell profiles
+  if [[ "$INTERACTIVE" == "true" ]]; then
+    read -p "Would you like to add MVNimble to your PATH automatically? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      for shell_profile in "${HOME}/.bashrc" "${HOME}/.zshrc" "${HOME}/.bash_profile"; do
+        if [[ -f "$shell_profile" ]]; then
+          echo "" >> "$shell_profile"
+          echo "# Added by MVNimble installer" >> "$shell_profile"
+          echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$shell_profile"
+          if [[ -d "${INSTALL_DIR}/tools/bats/bin" ]]; then
+            echo "export PATH=\"${INSTALL_DIR}/tools/bats/bin:\$PATH\"" >> "$shell_profile"
+          fi
+          echo "# End of MVNimble installer additions" >> "$shell_profile"
+          print_success "Updated $shell_profile"
+        fi
+      done
+      print_info "Please restart your shell or run 'source ~/.bashrc' (or equivalent) to apply changes."
+    fi
   fi
 else
   echo "MVNimble installed system-wide to: $INSTALL_DIR"

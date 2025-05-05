@@ -1,0 +1,310 @@
+#!/usr/bin/env bash
+# Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+#==============================================================================
+# mvnimble-project
+#
+# MVNimble Project Analyzer - Easy Maven project analyzer wrapper
+#
+# Description:
+#   A user-friendly wrapper script that makes it easy to run MVNimble on any
+#   Maven project in any directory. This script handles project path resolution
+#   and simplifies the command-line interface.
+#
+# Usage:
+#   mvnimble-project /path/to/maven/project [options]
+#==============================================================================
+
+# Ensure script fails on error
+set -e
+
+# Get the directory where this script is located
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+# Try to find the installation directory
+if [[ -f "$SCRIPT_DIR/../mvnimble.conf" ]]; then
+  # Source the configuration file to get MVNIMBLE_INSTALL_DIR
+  source "$SCRIPT_DIR/../mvnimble.conf"
+  if [[ -n "$MVNIMBLE_INSTALL_DIR" ]]; then
+    INSTALL_DIR="$MVNIMBLE_INSTALL_DIR"
+    LIB_DIR="${INSTALL_DIR}/lib"
+  else
+    # Fall back to relative path
+    INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+    LIB_DIR="${INSTALL_DIR}/lib"
+  fi
+else
+  # Fall back to relative path
+  INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+  LIB_DIR="${INSTALL_DIR}/lib"
+  
+  # Check if lib directory exists, if not try common installation locations
+  if [[ ! -d "$LIB_DIR" ]]; then
+    # Try common installation locations
+    for dir in \
+      "/usr/local/opt/mvnimble" \
+      "/usr/local/share/mvnimble" \
+      "/opt/mvnimble" \
+      "${HOME}/.mvnimble"; do
+      if [[ -d "${dir}/lib" ]]; then
+        INSTALL_DIR="$dir"
+        LIB_DIR="${INSTALL_DIR}/lib"
+        break
+      fi
+    done
+  fi
+fi
+
+# Verify the lib directory exists
+if [[ ! -d "$LIB_DIR" ]]; then
+  echo "Error: Cannot find MVNimble library directory." >&2
+  echo "Please ensure MVNimble is properly installed." >&2
+  exit 1
+fi
+
+# Source required libraries
+if [[ -f "${LIB_DIR}/constants.sh" ]]; then
+  source "${LIB_DIR}/constants.sh"
+else
+  echo "Error: Cannot find required MVNimble libraries." >&2
+  echo "Please ensure MVNimble is properly installed." >&2
+  exit 1
+fi
+
+if [[ -f "${LIB_DIR}/common.sh" ]]; then
+  source "${LIB_DIR}/common.sh"
+else
+  echo "Error: Cannot find required MVNimble libraries." >&2
+  echo "Please ensure MVNimble is properly installed." >&2
+  exit 1
+fi
+
+# Check if we have enough arguments
+if [[ $# -lt 1 ]]; then
+  print_header "MVNimble Project Analyzer"
+  echo
+  echo "Usage: $(basename "$0") PROJECT_PATH [command] [options]"
+  echo
+  echo "A simplified wrapper for analyzing Maven projects with MVNimble."
+  echo
+  echo "Arguments:"
+  echo "  PROJECT_PATH      Path to the Maven project directory (containing pom.xml)"
+  echo
+  echo "Commands:"
+  echo "  monitor           Monitor a Maven build (default if no command specified)"
+  echo "  analyze           Analyze previous build results"
+  echo "  report            Generate a report from build data"
+  echo
+  echo "Options:"
+  echo "  --clean           Run 'mvn clean' before the build"
+  echo "  --test            Run 'mvn test' (default)"
+  echo "  --verify          Run 'mvn verify' instead of 'mvn test'"
+  echo "  --package         Run 'mvn package' instead of 'mvn test'"
+  echo "  --install         Run 'mvn install' instead of 'mvn test'"
+  echo "  --output=DIR      Specify output directory (default: ./mvnimble-results)"
+  echo "  --threads=N       Set the number of threads for Maven (-T option)"
+  echo "  --help            Show this help message"
+  echo
+  echo "Examples:"
+  echo "  $(basename "$0") /path/to/project"
+  echo "  $(basename "$0") /path/to/project --clean --verify"
+  echo "  $(basename "$0") /path/to/project analyze --output=./results"
+  echo
+  exit 1
+fi
+
+# Parse the project path (first argument)
+PROJECT_PATH="$1"
+shift
+
+# Validate the project path
+if [[ ! -d "$PROJECT_PATH" ]]; then
+  print_error "Project directory not found: $PROJECT_PATH"
+  exit 1
+fi
+
+# Change to absolute path
+PROJECT_PATH="$(get_abs_path "$PROJECT_PATH")"
+
+# Verify it's a Maven project
+if [[ ! -f "${PROJECT_PATH}/pom.xml" ]]; then
+  print_error "Not a Maven project: $PROJECT_PATH (no pom.xml found)"
+  exit 1
+fi
+
+# Default values
+COMMAND="monitor"
+OUTPUT_DIR="${PROJECT_PATH}/mvnimble-results"
+MAVEN_GOALS=("test")
+MAVEN_ARGS=()
+CLEAN_FIRST=false
+THREADS=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    monitor|analyze|report)
+      COMMAND="$1"
+      shift
+      ;;
+    --clean)
+      CLEAN_FIRST=true
+      shift
+      ;;
+    --test)
+      MAVEN_GOALS=("test")
+      shift
+      ;;
+    --verify)
+      MAVEN_GOALS=("verify")
+      shift
+      ;;
+    --package)
+      MAVEN_GOALS=("package")
+      shift
+      ;;
+    --install)
+      MAVEN_GOALS=("install")
+      shift
+      ;;
+    --output=*)
+      OUTPUT_DIR="${1#*=}"
+      shift
+      ;;
+    --threads=*)
+      THREADS="${1#*=}"
+      shift
+      ;;
+    --help)
+      print_header "MVNimble Project Analyzer"
+      echo
+      echo "Usage: $(basename "$0") PROJECT_PATH [command] [options]"
+      echo
+      echo "A simplified wrapper for analyzing Maven projects with MVNimble."
+      echo
+      echo "Arguments:"
+      echo "  PROJECT_PATH      Path to the Maven project directory (containing pom.xml)"
+      echo
+      echo "Commands:"
+      echo "  monitor           Monitor a Maven build (default if no command specified)"
+      echo "  analyze           Analyze previous build results"
+      echo "  report            Generate a report from build data"
+      echo
+      echo "Options:"
+      echo "  --clean           Run 'mvn clean' before the build"
+      echo "  --test            Run 'mvn test' (default)"
+      echo "  --verify          Run 'mvn verify' instead of 'mvn test'"
+      echo "  --package         Run 'mvn package' instead of 'mvn test'"
+      echo "  --install         Run 'mvn install' instead of 'mvn test'"
+      echo "  --output=DIR      Specify output directory (default: ./mvnimble-results)"
+      echo "  --threads=N       Set the number of threads for Maven (-T option)"
+      echo "  --help            Show this help message"
+      echo
+      echo "Examples:"
+      echo "  $(basename "$0") /path/to/project"
+      echo "  $(basename "$0") /path/to/project --clean --verify"
+      echo "  $(basename "$0") /path/to/project analyze --output=./results"
+      echo
+      exit 0
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
+# Set up Maven command
+MAVEN_CMD=("mvn")
+if [[ -n "$THREADS" ]]; then
+  MAVEN_CMD+=("-T" "$THREADS")
+fi
+
+if [[ "$CLEAN_FIRST" == true ]]; then
+  MAVEN_CMD+=("clean")
+fi
+
+# Add the Maven goals
+MAVEN_CMD+=("${MAVEN_GOALS[@]}")
+
+# Make sure output directory exists and is absolute
+OUTPUT_DIR="$(get_abs_path "$OUTPUT_DIR")"
+ensure_directory "$OUTPUT_DIR"
+
+print_header "MVNimble Project Analyzer"
+echo
+echo "Project: $PROJECT_PATH"
+echo "Command: $COMMAND"
+echo "Output Directory: $OUTPUT_DIR"
+echo
+
+# Perform the requested action
+case "$COMMAND" in
+  monitor)
+    # Change to project directory
+    print_info "Changing to project directory: $PROJECT_PATH"
+    cd "$PROJECT_PATH"
+
+    # Run the monitor command
+    print_info "Running Maven build with monitoring..."
+    print_info "Maven command: ${MAVEN_CMD[*]}"
+    # Use the full path to the mvnimble script
+    if [[ -f "${SCRIPT_DIR}/mvnimble" ]]; then
+      "${SCRIPT_DIR}/mvnimble" monitor --output "$OUTPUT_DIR" -- "${MAVEN_CMD[@]}"
+    else
+      # If not found in script dir, use the one in PATH
+      mvnimble monitor --output "$OUTPUT_DIR" -- "${MAVEN_CMD[@]}"
+    fi
+    ;;
+    
+  analyze)
+    # Run the analyze command
+    print_info "Analyzing build results..."
+    # Use the full path to the mvnimble script
+    if [[ -f "${SCRIPT_DIR}/mvnimble" ]]; then
+      "${SCRIPT_DIR}/mvnimble" analyze --input "$OUTPUT_DIR" --output "${OUTPUT_DIR}/analysis.md"
+    else
+      # If not found in script dir, use the one in PATH
+      mvnimble analyze --input "$OUTPUT_DIR" --output "${OUTPUT_DIR}/analysis.md"
+    fi
+    
+    if [[ -f "${OUTPUT_DIR}/analysis.md" ]]; then
+      print_success "Analysis complete. Results saved to: ${OUTPUT_DIR}/analysis.md"
+    else
+      print_error "Analysis failed."
+    fi
+    ;;
+    
+  report)
+    # Run the report command
+    print_info "Generating report..."
+    DATA_FILE="${OUTPUT_DIR}/data.json"
+    if [[ ! -f "$DATA_FILE" ]]; then
+      print_error "Data file not found: $DATA_FILE"
+      print_info "Please run 'monitor' command first."
+      exit 1
+    fi
+    
+    # Use the full path to the mvnimble script
+    if [[ -f "${SCRIPT_DIR}/mvnimble" ]]; then
+      "${SCRIPT_DIR}/mvnimble" report --input "$DATA_FILE" --output "${OUTPUT_DIR}/report.html" --format html
+    else
+      # If not found in script dir, use the one in PATH
+      mvnimble report --input "$DATA_FILE" --output "${OUTPUT_DIR}/report.html" --format html
+    fi
+    
+    if [[ -f "${OUTPUT_DIR}/report.html" ]]; then
+      print_success "Report generated. Saved to: ${OUTPUT_DIR}/report.html"
+    else
+      print_error "Report generation failed."
+    fi
+    ;;
+    
+  *)
+    print_error "Unknown command: $COMMAND"
+    exit 1
+    ;;
+esac
+
+exit 0

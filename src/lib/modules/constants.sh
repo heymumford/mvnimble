@@ -91,7 +91,7 @@ readonly DEFAULT_MEMORY_MB=2048                       # Default memory allocatio
 readonly MAX_MEMORY_PERCENT=75                        # Maximum percent of system memory to use
 readonly MINIMUM_DISK_SPACE_MB=200                    # Minimum required disk space in MB
 readonly SECONDS_PER_DAY=86400                        # Seconds in a day (used in calculations)
-readonly ESSENTIAL_COMMANDS="awk grep sed cat"        # Essential commands required by MVNimble
+readonly ESSENTIAL_COMMANDS="awk grep sed cat xmlstarlet"  # Essential commands required by MVNimble
 
 # =============================================================================
 # Performance Thresholds
