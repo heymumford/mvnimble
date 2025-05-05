@@ -1,195 +1,218 @@
 # MVNimble Troubleshooting Guide
 
-This guide provides diagnostic approaches and solutions for common issues encountered when using MVNimble.
+This guide helps you solve common problems with MVNimble.
 
-## Table of Contents
+## Installation Issues
 
-1. [Common Issues](#common-issues)
-2. [Flaky Test Diagnosis](#flaky-test-diagnosis)
-3. [Performance Problems](#performance-problems)
-4. [Environment-Specific Issues](#environment-specific-issues)
-5. [Advanced Diagnostic Techniques](#advanced-diagnostic-techniques)
+### Command Not Found
 
-## Common Issues
-
-### Installation Problems
-
-| Problem | Likely Causes | Solution |
-|---------|---------------|----------|
-| Installation script fails | Missing dependencies | Ensure bash, curl, and Maven are installed |
-| Permission errors | Insufficient rights | Run with sudo or check directory permissions |
-| Cannot find mvnimble command | PATH not updated | Restart terminal or source profile files |
-
-### Configuration Issues
-
-| Problem | Likely Causes | Solution |
-|---------|---------------|----------|
-| Configuration file not found | Incorrect project path | Verify project path with `mvnimble config --check` |
-| Invalid configuration | Manual edits to config | Reset with `mvnimble config --reset` |
-| Cannot apply settings | Permissions issue | Check write permissions to Maven files |
-
-### Integration Problems
-
-| Problem | Likely Causes | Solution |
-|---------|---------------|----------|
-| CI pipeline failures | Environment differences | Use `--env=ci` flag for CI environments |
-| Container compatibility | Resource constraints | Set resource expectations with env variables |
-| Maven plugin conflicts | Version incompatibility | Use `mvnimble check-compat` to verify compatibility |
-
-## Flaky Test Diagnosis
-
-MVNimble provides a structured approach to diagnosing and fixing flaky tests:
-
-### Diagnostic Framework
-
-Flaky tests typically fall into one of seven categories:
-
-1. **Timing Layer**
-   - Symptom: Tests fail sporadically with timing-related errors
-   - Diagnosis: Run with `mvnimble diagnose-flaky --focus=timing`
-   - Solutions: Replace fixed waits with dynamic waits or polling
-
-2. **Resource Management**
-   - Symptom: Tests fail when system is under load
-   - Diagnosis: Run with `mvnimble monitor --resource-tracking`
-   - Solutions: Implement proper resource cleanup, adjust resource expectations
-
-3. **Concurrency Issues**
-   - Symptom: Tests fail only when run in parallel
-   - Diagnosis: Use `mvnimble analyze-concurrency`
-   - Solutions: Fix race conditions, implement proper synchronization
-
-4. **External Dependencies**
-   - Symptom: Tests fail due to external services
-   - Diagnosis: Use `mvnimble trace-dependencies`
-   - Solutions: Mock external services, implement resilient testing
-
-5. **State Pollution**
-   - Symptom: Tests pass in isolation but fail in sequence
-   - Diagnosis: Use `mvnimble detect-state-leaks`
-   - Solutions: Implement proper setup/teardown, isolate test state
-
-6. **Infrastructure Variability**
-   - Symptom: Tests pass locally but fail in CI
-   - Diagnosis: Compare environments with `mvnimble env-compare`
-   - Solutions: Normalize environments, make tests environment-aware
-
-7. **Test Logic Issues**
-   - Symptom: Tests have implicit assumptions or hidden dependencies
-   - Diagnosis: Use `mvnimble review-test --deep`
-   - Solutions: Refactor tests to make assumptions explicit
-
-### Systematic Investigation Process
-
-For thorough flaky test investigation:
-
-1. **Reproduce the Issue**
-   ```bash
-   mvnimble reproduce-flaky -t com.example.FlakySuiteTest --iterations=50
-   ```
-
-2. **Collect Evidence**
-   ```bash
-   mvnimble collect-evidence -t com.example.FlakySuiteTest --output=evidence.json
-   ```
-
-3. **Analyze Patterns**
-   ```bash
-   mvnimble analyze-patterns --evidence=evidence.json
-   ```
-
-4. **Implement and Verify Fix**
-   ```bash
-   mvnimble verify-fix -t com.example.FlakySuiteTest --iterations=100
-   ```
-
-## Performance Problems
-
-### Diagnosing Performance Issues
-
-1. **Establish Baseline**
-   ```bash
-   mvnimble benchmark -p /path/to/project --baseline
-   ```
-
-2. **Identify Bottlenecks**
-   ```bash
-   mvnimble analyze-bottlenecks -p /path/to/project
-   ```
-
-3. **Resource Profiling**
-   ```bash
-   mvnimble profile -p /path/to/project --focus=cpu,memory,io
-   ```
-
-### Common Performance Problems
-
-| Problem | Diagnosis | Solution |
-|---------|-----------|----------|
-| CPU saturation | `mvnimble profile --focus=cpu` | Adjust thread count, optimize test code |
-| Memory leaks | `mvnimble profile --focus=memory` | Fix resource leaks, adjust heap settings |
-| I/O bottlenecks | `mvnimble profile --focus=io` | Optimize file operations, use in-memory DB |
-| Network latency | `mvnimble profile --focus=network` | Mock network services, improve timeouts |
-
-## Environment-Specific Issues
-
-### Container Environments
-
-1. **Resource Constraints**
-   - Diagnose: `mvnimble detect-container-limits`
-   - Solution: Adjust Maven settings to work within constraints
-
-2. **Network Limitations**
-   - Diagnose: `mvnimble network-check`
-   - Solution: Configure proxy settings, implement caching
-
-3. **Storage Issues**
-   - Diagnose: `mvnimble check-storage`
-   - Solution: Clean build artifacts, optimize resource usage
-
-### CI/CD Environments
-
-1. **Pipeline Timeouts**
-   - Diagnose: `mvnimble analyze-pipeline`
-   - Solution: Optimize test selectors, implement test splitting
-
-2. **Resource Allocation**
-   - Diagnose: `mvnimble ci-resource-check`
-   - Solution: Request appropriate resources, optimize settings
-
-## Advanced Diagnostic Techniques
-
-### Debugging Mode
-
-Run MVNimble with enhanced debugging information:
-
-```bash
-mvnimble --debug monitor -p /path/to/project
+```
+-bash: mvnimble: command not found
 ```
 
-### Log Analysis
+**Solutions:**
+1. Make sure installation completed successfully:
+   ```bash
+   ./install-simple.sh
+   ```
+2. Check if MVNimble is in your PATH:
+   ```bash
+   which mvnimble
+   ```
+3. Try using the full path:
+   ```bash
+   /path/to/mvnimble/bin/mvnimble mvn test
+   ```
 
-Extract insights from test logs:
+### Missing Dependencies
 
-```bash
-mvnimble analyze-logs --log=/path/to/test.log --pattern=ERROR
+```
+Error: Required dependency 'jq' not found
 ```
 
-### Remote Diagnostics
+**Solutions:**
+1. Install missing dependencies:
+   ```bash
+   # On macOS
+   brew install jq
+   
+   # On Ubuntu/Debian
+   sudo apt-get install jq
+   ```
+2. Run installation with dependency check:
+   ```bash
+   ./install-with-fix.sh
+   ```
 
-Set up remote diagnostics for distributed environments:
+## Runtime Problems
 
-```bash
-mvnimble remote-diagnostics --host=remote-server --port=8080
-```
+### No Results Generated
 
-### Diagnostic Reports
+**Problem:** Tests run but no report is generated
 
-Generate comprehensive diagnostic reports:
+**Solutions:**
+1. Check if MVNimble has write permissions:
+   ```bash
+   # Try creating output directory manually
+   mkdir -p mvnimble-results
+   chmod 755 mvnimble-results
+   ```
+2. Run with verbose output:
+   ```bash
+   mvnimble --verbose mvn test
+   ```
+3. Check for errors in the log:
+   ```bash
+   cat mvnimble-results/mvnimble.log
+   ```
 
-```bash
-mvnimble diagnostic-report -p /path/to/project --comprehensive
-```
+### Incomplete Reports
 
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+**Problem:** Reports are missing sections or data
+
+**Solutions:**
+1. Check if the test completed successfully:
+   ```bash
+   cat mvnimble-results/status.txt
+   ```
+2. Generate report manually:
+   ```bash
+   mvnimble report --format markdown
+   ```
+3. Look for error messages:
+   ```bash
+   grep ERROR mvnimble-results/mvnimble.log
+   ```
+
+### Performance Issues
+
+**Problem:** MVNimble makes tests run much slower
+
+**Solutions:**
+1. Reduce monitoring frequency:
+   ```bash
+   mvnimble --sample-rate=5s mvn test
+   ```
+2. Disable thread monitoring:
+   ```bash
+   mvnimble --disable-thread-monitor mvn test
+   ```
+3. Run with minimal monitoring:
+   ```bash
+   mvnimble --monitor-only --minimal mvn test
+   ```
+
+## Flaky Test Detection Issues
+
+### False Positives
+
+**Problem:** Tests incorrectly marked as flaky
+
+**Solutions:**
+1. Increase detection runs:
+   ```bash
+   mvnimble --detect-flaky=10 mvn test
+   ```
+2. Adjust flakiness threshold:
+   ```bash
+   mvnimble --flaky-threshold=0.4 --detect-flaky=5 mvn test
+   ```
+
+### Deadlocks During Flaky Detection
+
+**Problem:** Tests hang when running multiple times
+
+**Solutions:**
+1. Add timeout to prevent hanging:
+   ```bash
+   mvnimble --timeout=5m --detect-flaky=3 mvn test
+   ```
+2. Run tests in isolation:
+   ```bash
+   mvnimble --isolate-tests --detect-flaky=3 mvn test
+   ```
+
+## Report Interpretation Problems
+
+### Resource Correlation Unclear
+
+**Problem:** Can't understand resource correlation data
+
+**Solutions:**
+1. Generate a more detailed report:
+   ```bash
+   mvnimble report --format html --detailed-resources
+   ```
+2. View raw metrics data:
+   ```bash
+   cat mvnimble-results/metrics/system.csv
+   cat mvnimble-results/metrics/jvm.csv
+   ```
+3. Generate a report focused on a specific test:
+   ```bash
+   mvnimble report --format markdown --focus-test=TestClassName
+   ```
+
+### Confusing Error Messages
+
+**Problem:** Test failure reasons aren't clear
+
+**Solutions:**
+1. Enable enhanced error analysis:
+   ```bash
+   mvnimble --enhanced-errors mvn test
+   ```
+2. Check raw Maven output:
+   ```bash
+   cat mvnimble-results/maven_output.log
+   ```
+3. Run test directly for comparison:
+   ```bash
+   mvn -Dtest=SpecificTest test
+   ```
+
+## Platform-Specific Issues
+
+### MacOS Issues
+
+**Problem:** Resource monitoring incomplete on macOS
+
+**Solutions:**
+1. Install additional monitoring tools:
+   ```bash
+   brew install coreutils
+   ```
+2. Run with platform-specific options:
+   ```bash
+   mvnimble --macos-compatible mvn test
+   ```
+
+### Linux Issues
+
+**Problem:** Permission issues with monitoring
+
+**Solutions:**
+1. Run with elevated permissions for monitoring:
+   ```bash
+   sudo mvnimble --monitor-system mvn test
+   ```
+2. Adjust system metrics collection:
+   ```bash
+   mvnimble --proc-metrics-only mvn test
+   ```
+
+## Getting Help
+
+If you're still having problems:
+
+1. Run MVNimble with diagnostics:
+   ```bash
+   mvnimble --diagnose-tool > mvnimble-diagnostic.log
+   ```
+
+2. Check for known issues in the documentation:
+   ```bash
+   grep -r "your issue" ./doc/
+   ```
+
+3. Submit a detailed issue with your diagnostic log and environment details

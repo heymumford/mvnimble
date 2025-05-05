@@ -1,273 +1,125 @@
 # MVNimble Usage Guide
 
-This guide explains how to use MVNimble to optimize your Maven builds and test execution.
+This guide explains how to use MVNimble to monitor and analyze your Maven tests.
 
-## Table of Contents
+## Basic Commands
 
-1. [Overview](#overview)
-2. [Basic Usage](#basic-usage)
-3. [Using the Project Analyzer](#using-the-project-analyzer)
-4. [Command Reference](#command-reference)
-5. [Advanced Usage](#advanced-usage)
-6. [Output Files](#output-files)
-7. [Common Use Cases](#common-use-cases)
-8. [Tips and Best Practices](#tips-and-best-practices)
-
-## Overview
-
-MVNimble provides three main functions:
-
-1. **Monitoring** - Collects real-time data during Maven builds
-2. **Analysis** - Analyzes collected data to identify bottlenecks
-3. **Reporting** - Generates readable reports with optimization suggestions
-
-You can use MVNimble in two ways:
-- **Simple Mode**: Using the `mvnimble-project` wrapper script that handles all the details for you
-- **Standard Mode**: Using the individual `mvnimble` commands directly
-
-## Basic Usage
-
-### Prerequisites
-
-Before using MVNimble, ensure:
-
-1. MVNimble is properly installed
-2. The `mvnimble` command is in your PATH
-3. You have a Maven project to analyze
-
-### Quick Start
-
-The simplest way to use MVNimble is with the project analyzer:
+MVNimble works as a wrapper around your Maven commands:
 
 ```bash
-# Analyze a Maven project
-mvnimble-project /path/to/maven/project
+mvnimble mvn [your-regular-maven-commands]
 ```
 
-This will:
-1. Run `mvn test` on the project
-2. Monitor and collect data during the build
-3. Analyze the data
-4. Generate recommendations
-
-### Monitoring a Maven Build
-
-To monitor a Maven build:
+For example:
 
 ```bash
-# Navigate to your Maven project
-cd /path/to/maven/project
+# Run all tests with monitoring
+mvnimble mvn test
 
-# Monitor a build with default settings
-mvnimble monitor -- mvn clean test
+# Run a specific test
+mvnimble mvn -Dtest=MySpecificTest test
 
-# Monitor with custom settings
-mvnimble monitor -o ./custom-results -i 5 -m 30 -- mvn clean verify -T 4
+# Run with a specific profile
+mvnimble mvn -P integration-tests test
 ```
 
-### Analyzing Build Results
+## Command Options
 
-After monitoring, analyze the results:
+MVNimble provides several options for monitoring:
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--jvm-opts` | Set custom JVM options | `mvnimble --jvm-opts="-Xmx2g" mvn test` |
+| `--monitor-only` | Only collect metrics, don't analyze | `mvnimble --monitor-only mvn test` |
+| `--detect-flaky` | Run tests multiple times to find flaky tests | `mvnimble --detect-flaky=5 mvn test` |
+| `--timeout` | Set maximum test execution time | `mvnimble --timeout=10m mvn test` |
+| `--output-dir` | Change the output directory | `mvnimble --output-dir=./my-results mvn test` |
+
+## Analyzing Test Results
+
+After running tests, MVNimble automatically generates a report in the `mvnimble-results` directory:
 
 ```bash
-# Analyze with default settings
-mvnimble analyze -i ./mvnimble-results
+# View the default Markdown report
+cat mvnimble-results/test_monitoring_report.md
 
-# Analyze with custom options
-mvnimble analyze -i ./custom-results -o ./analysis.md -f markdown -p ./pom.xml
+# Generate HTML report
+mvnimble report --format html
 ```
 
-### Generating Reports
+## Finding Flaky Tests
 
-Generate reports from the analysis:
+To identify flaky tests, run tests multiple times:
 
 ```bash
-# Generate an HTML report
-mvnimble report -i ./mvnimble-results/data.json -o ./report.html -f html
-
-# Generate a markdown report
-mvnimble report -i ./mvnimble-results/data.json -o ./report.md -f markdown
+# Run tests 5 times to find flaky behavior
+mvnimble --detect-flaky=5 mvn test
 ```
 
-## Using the Project Analyzer
+MVNimble will identify tests that pass in some runs but fail in others.
 
-The `mvnimble-project` script simplifies using MVNimble by combining the most common commands.
+## Understanding Resource Correlation
 
-### Basic Project Analyzer Usage
+MVNimble automatically correlates resource usage with test failures:
+
+1. **CPU Spikes**: Identifies when high CPU usage coincides with test failures
+2. **Memory Issues**: Detects memory-related failures
+3. **I/O Bottlenecks**: Shows when disk or network I/O might be causing problems
+
+View this information in the `resource_correlation.md` file:
 
 ```bash
-# Run with defaults (equivalent to running 'mvn test' with monitoring)
-mvnimble-project /path/to/maven/project
-
-# Run with clean and verify goals
-mvnimble-project /path/to/maven/project --clean --verify
-
-# Set custom output directory
-mvnimble-project /path/to/maven/project --output=/path/to/output
+cat mvnimble-results/resource_correlation.md
 ```
 
-### Project Analyzer Command Options
+## Diagnosing Build Failures
 
-The project analyzer supports these commands:
+When a build fails, MVNimble helps diagnose the problem:
 
 ```bash
-# Just monitor the build (default)
-mvnimble-project /path/to/project monitor
-
-# Analyze previous build results
-mvnimble-project /path/to/project analyze
-
-# Generate a report from previous results
-mvnimble-project /path/to/project report
+# Run build and diagnose any failures
+mvnimble mvn compile
 ```
 
-### Project Analyzer Build Options
+If the build fails, check the generated analysis:
 
 ```bash
-# Run 'mvn clean test'
-mvnimble-project /path/to/project --clean
-
-# Run with specific Maven goals
-mvnimble-project /path/to/project --verify   # Runs 'mvn verify'
-mvnimble-project /path/to/project --package  # Runs 'mvn package'
-mvnimble-project /path/to/project --install  # Runs 'mvn install'
-
-# Set Maven thread count
-mvnimble-project /path/to/project --threads=4  # Runs with '-T 4'
+cat mvnimble-results/build_failure_analysis.md
 ```
 
-## Command Reference
+## Tips for QA Engineers
 
-### mvnimble monitor
+1. **Always check resource correlation** when tests fail inconsistently
+2. **Run with --detect-flaky=3** as a first step when investigating flaky tests
+3. **Use --jvm-opts** to test with different memory settings
+4. **Compare reports** from different runs to spot patterns
+5. **Include MVNimble reports** when reporting issues to developers
 
-Monitors a Maven build in real-time.
+## Common Workflows
 
-```bash
-mvnimble monitor [options] -- [maven command]
-```
-
-Options:
-- `-o, --output DIR` - Specify output directory (default: ./mvnimble-results)
-- `-i, --interval SEC` - Set data collection interval in seconds (default: 5)
-- `-m, --max-time MIN` - Maximum monitoring time in minutes (default: 60)
-
-### mvnimble analyze
-
-Analyzes build results.
+### Finding Memory-Related Issues
 
 ```bash
-mvnimble analyze [options]
-```
+# First with default settings
+mvnimble mvn test
 
-Options:
-- `-i, --input DIR` - Specify input directory with monitoring data
-- `-o, --output FILE` - Specify output file (default: mvnimble-analysis.md)
-- `-f, --format FMT` - Output format: markdown, html, json (default: markdown)
-- `-p, --pom FILE` - Path to pom.xml file for configuration analysis
-
-### mvnimble report
-
-Generates reports from build data.
-
-```bash
-mvnimble report [options]
-```
-
-Options:
-- `-i, --input FILE` - Input JSON file with monitoring data
-- `-o, --output FILE` - Output file for the report
-- `-f, --format FMT` - Output format: markdown, html, json (default: markdown)
-
-### mvnimble verify
-
-Verifies your environment and installation.
-
-```bash
-mvnimble verify
-```
-
-## Advanced Usage
-
-### Custom Maven Configurations
-
-You can pass any Maven options after the `--` separator:
-
-```bash
-# With custom Maven options
-mvnimble monitor -- mvn clean test -DskipTests=false -Dmaven.test.failure.ignore=true
-
-# With custom profiles
-mvnimble monitor -- mvn test -P integration,performance
-```
-
-### Running in CI/CD Pipelines
-
-For CI/CD pipelines, use the non-interactive mode and explicit options:
-
-```bash
-mvnimble monitor -o ./ci-results -- mvn clean verify
-mvnimble analyze -i ./ci-results -o ./ci-analysis.md -f markdown
-```
-
-## Output Files
-
-MVNimble generates these files during monitoring:
-
-- `data.json` - Primary data file with all metrics
-- `environment.txt` - Environment information
-- `maven_output.log` - Maven command output
-- `metrics/` - Directory with raw metrics
-  - `system.csv` - System resource metrics
-  - `jvm.csv` - JVM metrics
-  - `tests.csv` - Test execution metrics
-- `test_monitoring_report.md` - Basic monitoring report
-- `resource_correlation.md` - Resource usage analysis
-
-## Common Use Cases
-
-### Finding Bottlenecks in Test Execution
-
-```bash
-# Monitor test execution
-mvnimble-project /path/to/project
-
-# Review the analysis results
-cat /path/to/project/mvnimble-results/analysis.md
-```
-
-### Optimizing Thread Count
-
-```bash
-# Try different thread counts
-mvnimble-project /path/to/project --threads=1 --output=./results-t1
-mvnimble-project /path/to/project --threads=2 --output=./results-t2
-mvnimble-project /path/to/project --threads=4 --output=./results-t4
+# Then with more memory
+mvnimble --jvm-opts="-Xmx2g" mvn test
 
 # Compare the results
-cat ./results-t*/duration.txt
+diff mvnimble-results/resource_correlation.md previous-run/resource_correlation.md
 ```
 
-### Identifying Flaky Tests
+### CI Integration
+
+Add MVNimble to your CI pipeline:
 
 ```bash
-# Run tests multiple times
-for i in {1..5}; do
-  mvnimble-project /path/to/project --output=./run-$i
-done
+# In your CI script
+./install-simple.sh
+mvnimble mvn test
+mvnimble report --format html
 
-# Analyze the results
-mvnimble analyze -i ./run-1 -o ./flakiness-analysis.md
+# Archive the results
+cp -r mvnimble-results $ARTIFACT_DIR
 ```
-
-## Tips and Best Practices
-
-1. **Start Simple**: Begin with the `mvnimble-project` wrapper to get familiar with MVNimble
-2. **Consistent Comparison**: Always use the same hardware when comparing different runs
-3. **Full Builds**: Run with `--clean` for the most accurate results
-4. **Multiple Runs**: Perform multiple runs to identify patterns and anomalies
-5. **Follow Recommendations**: Implement the suggestions from the analysis reports
-6. **Check Environment**: Use `mvnimble verify` to ensure proper setup
-7. **Share Reports**: Use the HTML reports to share results with your team
-
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license

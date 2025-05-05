@@ -1,229 +1,223 @@
-# MVNimble Practitioner's Guide for QA Engineers
+# MVNimble Guide for QA Engineers
 
-This guide provides practical advice for QA engineers using MVNimble to tackle common test environment challenges. It covers specific use cases and investigation strategies that help build your test optimization toolkit.
+This guide explains how to use MVNimble to improve your QA workflows for Maven-based Java projects.
 
-## Key Skills MVNimble Helps QA Engineers Develop
+## Why Use MVNimble?
 
-1. **Test Environment Diagnostics**
-   - Identifying execution patterns in test logs
-   - Correlating symptoms with underlying system constraints
-   - Forming precise hypotheses about performance issues
+As a QA engineer, MVNimble helps you:
 
-2. **Controlled Experimentation**
-   - Designing systematic test variations to isolate variables
-   - Measuring impact of individual configuration changes
-   - Documenting causality between settings and outcomes
+1. **Find flaky tests** that sometimes pass and sometimes fail
+2. **Understand test failures** by linking them to system resource issues
+3. **Diagnose build failures** with clear, actionable recommendations
+4. **Generate helpful reports** to share with developers
+5. **Save time** with automated test analysis
 
-3. **Resource Utilization Analysis**
-   - Evaluating CPU, memory, disk, and network usage patterns
-   - Recognizing resource contention signatures
-   - Detecting threshold effects and bottlenecks
+## Getting Started
 
-4. **Concurrency Comprehension**
-   - Identifying thread safety issues without code inspection
-   - Understanding parallelization trade-offs
-   - Recognizing test isolation requirements
-
-5. **Configuration Engineering**
-   - Translating performance patterns into configuration adjustments
-   - Tailoring test execution environments to specific workloads
-   - Optimizing build pipelines for different test categories
-
-6. **Measurement-Driven Advocacy**
-   - Articulating performance constraints with precise terminology
-   - Backing recommendations with empirical evidence
-   - Quantifying improvement potential for resource allocation decisions
-
-## Using MVNimble to Track Down Flaky Test Root Causes
-
-Based on comprehensive root cause analysis, MVNimble can help you efficiently diagnose flaky tests by focusing your investigation efforts on the most likely culprits. Rather than testing every possible cause, MVNimble helps you place smart "probabilistic bets" on where to look first.
-
-### How MVNimble Helps Narrow Down the Problem
-
-MVNimble excels at analyzing test execution patterns to identify the most likely layer where your flaky tests are failing. By examining test logs, resource utilization, and execution environments, it can quickly help you determine whether you're dealing with timing issues, resource contention, environmental dependencies, or one of the other common root causes.
-
-Here's how a few steps with MVNimble can guide your investigation:
-
-#### Step 1: Pattern Analysis of Test Failures
-
-Run your flaky test suite multiple times through MVNimble's analyzer. The tool will:
-
-- Automatically log execution times for each operation
-- Compare these against any hard-coded waits in your code
-- Identify mismatches that could indicate timing issues
-
-This helps you determine if you're dealing with Type A timing issues (hard-coded wait patterns) or something else entirely.
-
-#### Step 2: Resource Contention Detection
-
-MVNimble can monitor system resources during test execution to:
-
-- Track memory, connections, and file handles throughout the test run
-- Establish resource usage patterns for each test
-- Identify when resources are becoming exhausted
-
-This helps determine if your flaky tests are failing due to resource contention rather than timing issues.
-
-#### Step 3: Environment Configuration Analysis
-
-If the first two steps don't reveal the problem, MVNimble can:
-
-- Compare environment variables between passing and failing test runs
-- Create a matrix of environment differences correlated with test outcomes
-- Identify which specific configurations impact test success
-
-#### Step 4: Thread Interaction Visualization
-
-For more complex concurrency issues, MVNimble provides:
-
-- The ability to record the exact sequence of events during test execution
-- Timing diagrams to visualize thread interactions
-- Insight into potential race conditions
-
-### Real-World Example
-
-Let's say you have a suite of integration tests that fail about 20% of the time. With MVNimble, you might:
-
-1. Run the suite 10 times through MVNimble's analyzer
-2. Discover that failures correlate strongly with high CPU utilization
-3. Generate a "contention heat map" showing which resources are most fought over during test execution
-4. Identify that two specific tests are competing for the same database connection
-5. Measure how long each resource is locked by different tests to find opportunities to minimize lock duration
-
-This targeted approach saves you from having to manually explore dozens of potential root causes across all seven layers of test flakiness.
-
-## Practical Investigation Strategies
-
-### For Resource Constraint Investigation
+### Installation
 
 ```bash
-# Generate diagnostic questions first
-./optimization_config_generator.bash maven-test.log ./mvnimble-diagnostics
+# Simple installation
+./install-simple.sh
 
-# Check for CPU-related patterns
-cat ./mvnimble-diagnostics/maven-env-questions.md | grep -A10 "CPU"
-
-# Experiment with controlled resource constraints
-source ./resource_constraints.bash
-simulate_high_cpu_load 70
-time mvn test -Dtest=YourSlowTest
-
-# Compare with normal conditions
-time mvn test -Dtest=YourSlowTest
-
-# Document findings in your toolkit
-echo "CPU impact: Test takes 3x longer under 70% load" >> my-findings.md
+# Or with additional diagnostic tools
+./install-with-fix.sh
 ```
 
-### For Thread Safety Investigation
+### First Test Run
+
+Navigate to your Maven project and run:
 
 ```bash
-# Generate thread safety questions
-./optimization_config_generator.bash maven-test.log ./mvnimble-diagnostics
+# Basic test monitoring
+mvnimble mvn test
 
-# Explore concurrency patterns
-cat ./mvnimble-diagnostics/pom-investigation-questions.md | grep -A20 "Thread Safety"
-
-# Test with different thread count settings
-for forks in 1 2 4; do
-  echo "Testing with $forks forks"
-  mvn test -DforkCount=$forks -Dtest=ConcurrencyTest
-done
-
-# Document the results
-echo "Found optimal fork count: 2 (fails at 4+)" >> thread-safety-findings.md
+# View generated report
+cat mvnimble-results/test_monitoring_report.md
 ```
 
-### For Network Dependency Investigation
+## Common QA Tasks
+
+### Finding Flaky Tests
+
+Run tests multiple times to identify inconsistent behavior:
 
 ```bash
-# Generate network-related questions
-./optimization_config_generator.bash maven-test.log ./mvnimble-diagnostics
-
-# Experiment with network conditions
-source ./network_io_bottlenecks.bash
-simulate_network_latency "repo.maven.apache.org" 200
-mvn test -Dtest=NetworkTest
-
-# Test offline capabilities
-mvn -o test -Dtest=NetworkTest
-
-# Document network findings
-echo "Tests require < 200ms latency to central repo" >> network-findings.md
+# Run tests 5 times and identify flaky ones
+mvnimble --detect-flaky=5 mvn test
 ```
 
-## Building Your Knowledge Repository
+MVNimble will identify which tests pass sometimes and fail other times.
 
-As you use MVNimble, create a structured knowledge repository:
+### Analyzing Slow Tests
 
-1. **Core Patterns Observed**
-   - Document repeatable patterns in test execution
-   - Categorize by resource type (CPU, memory, network, etc.)
-   - Note correlation strength between patterns and outcomes
-
-2. **Investigation Questions**
-   - Maintain a list of effective diagnostic questions
-   - Group by subsystem or resource type
-   - Note which questions yielded valuable insights
-
-3. **Configuration Impact Matrix**
-   - Document configuration settings and their measured impact
-   - Create a heat map of which settings matter most
-   - Note interaction effects between settings
-
-4. **Team Reference Guide**
-   - Compile findings into a team-accessible format
-   - Include before/after metrics for key optimizations
-   - Create decision trees for common issues
-
-By systematically building this knowledge repository, you transform from simply running tests to becoming a test environment expert - an invaluable role for any development team.
-
-## Advanced Diagnostic Techniques
-
-### Multivariate Testing
-
-For complex environments, use MVNimble's pairwise test matrix to:
+Find and understand why certain tests are running slowly:
 
 ```bash
-# Generate a test matrix covering key factor combinations
-./pairwise_test_matrix.bash generate-matrix factors.csv
+# Run tests with performance analysis
+mvnimble --analyze-slow mvn test
 
-# Execute tests across all factor combinations
-./pairwise_test_matrix.bash run-all-cases factors.csv 'mvn test' results.csv
-
-# Analyze which factors had the biggest impact
-./pairwise_test_matrix.bash analyze-results results.csv > factor-analysis.md
+# View results
+cat mvnimble-results/test_monitoring_report.md
 ```
 
-### Regression Analysis
+The report will highlight slow tests and their resource usage.
 
-When you have large datasets of test performance:
+### Understanding Test Resource Usage
+
+See how tests use CPU, memory, and I/O resources:
 
 ```bash
-# Collect performance data across multiple runs
-for i in {1..20}; do
-  mvn test -Dtest=PerformanceTests | tee -a perf-run-$i.log
-done
+# Run with detailed resource monitoring
+mvnimble --detailed-resources mvn test
 
-# Use MVNimble's analysis tools to find key predictors
-./pairwise_test_matrix.bash regression-analysis perf-*.log > predictors.md
+# Check resource correlation
+cat mvnimble-results/resource_correlation.md
 ```
 
-### Custom Diagnostic Dashboards
+### Investigating Build Failures
 
-For ongoing monitoring:
+When builds fail, get a clear diagnosis:
 
 ```bash
-# Set up continuous monitoring of key metrics
-./monitor.sh --metrics "cpu,memory,io,network" --output dashboard.html
-
-# Integrate into CI system for trend analysis
-./ci-integration.sh --dashboard dashboard.html --alert-threshold "regression>10%"
+# Run build with analysis
+mvnimble mvn compile
 ```
 
-## Conclusion
+If the build fails, MVNimble will generate a `build_failure_analysis.md` file with details.
 
-The MVNimble toolkit empowers QA engineers to move beyond just executing tests to deeply understanding test environments. By building this expertise, you become a crucial bridge between development, operations, and quality - able to speak the language of all three domains and drive meaningful improvements in test efficiency and reliability.
+## Creating Useful Reports for Developers
 
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+### Generate HTML Reports
+
+For developer-friendly reports:
+
+```bash
+# After running tests
+mvnimble report --format html
+```
+
+Open `mvnimble-results/report.html` in a browser.
+
+### Focus on Specific Problems
+
+Create targeted reports:
+
+```bash
+# Focus on memory issues
+mvnimble report --focus memory
+
+# Focus on specific tests
+mvnimble report --focus-test SlowTest,FailingTest
+```
+
+### Including Test History
+
+Compare current results with previous runs:
+
+```bash
+# Generate report with history
+mvnimble report --with-history
+```
+
+## Best Practices for QA Teams
+
+### Daily Test Monitoring
+
+Add MVNimble to your daily testing:
+
+```bash
+# Morning test run with full analysis
+mvnimble mvn test
+
+# Save the results with date stamp
+cp -r mvnimble-results "test-results-$(date +%Y-%m-%d)"
+```
+
+### Documenting Test Issues
+
+When you file a bug about test failures:
+
+1. Run the test with MVNimble: `mvnimble mvn -Dtest=ProblemTest test`
+2. Attach the `resource_correlation.md` file to your bug report
+3. Include the exact MVNimble command you used
+4. Note any patterns you've observed across multiple runs
+
+### CI Integration
+
+Add MVNimble to your CI pipeline:
+
+```bash
+# In your CI script
+./install-simple.sh
+mvnimble mvn test
+mvnimble report --format html --format json
+```
+
+Then archive the `mvnimble-results` directory as a CI artifact.
+
+## Interpreting MVNimble Results
+
+### Understanding Failure Categories
+
+MVNimble classifies test failures into categories:
+
+1. **Resource-related**: Memory, CPU, or I/O problems
+2. **Timing-related**: Race conditions or timeout issues
+3. **Configuration-related**: Environment or setup problems
+4. **Code-related**: Actual bugs in the application code
+
+### Resource Correlation Indicators
+
+Key indicators in resource reports:
+
+- **HIGH CPU**: Test is computationally expensive
+- **MEMORY GROWTH**: Potential memory leak
+- **I/O WAIT SPIKES**: Disk or network bottlenecks
+- **THREAD CONTENTION**: Concurrency issues
+
+### Action Items from Reports
+
+For each test issue, MVNimble suggests next steps:
+
+1. For **flaky tests**: Increase runs, isolate the test, check for resource constraints
+2. For **slow tests**: Profile resource usage, check for blocking operations
+3. For **build failures**: Check dependencies, verify environment configuration
+
+## Advanced Features
+
+### Custom Test Monitoring
+
+Monitor specific aspects of tests:
+
+```bash
+# Focus on memory usage
+mvnimble --monitor-memory mvn test
+
+# Focus on thread behavior
+mvnimble --monitor-threads mvn test
+```
+
+### Integration with Other Tools
+
+Combine MVNimble with other testing tools:
+
+```bash
+# Use with JaCoCo for coverage
+mvnimble mvn jacoco:prepare-agent test jacoco:report
+
+# Use with Surefire reports
+mvnimble --surefire-integration mvn test
+```
+
+### Automating Routine Analysis
+
+Create simple scripts for common tasks:
+
+```bash
+# Example: daily-test.sh
+#!/bin/bash
+mvnimble --detect-flaky=3 mvn test
+mvnimble report --format html --format markdown
+echo "Tests completed - see mvnimble-results for details"
+```

@@ -1,123 +1,138 @@
 # MVNimble Reporting Guide
 
-MVNimble provides comprehensive reporting capabilities that help you understand your test execution, diagnose performance bottlenecks, and optimize your Maven builds. This guide explains how to use the reporting features effectively.
+MVNimble generates several types of reports to help you understand test performance and diagnose issues.
 
-## Report Types
+## Available Report Formats
 
-MVNimble supports the following report formats:
+| Format | Command | Purpose |
+|--------|---------|---------|
+| Markdown | Default | Human-readable summary of test results |
+| JSON | `--format json` | Structured data for programmatic analysis |
+| HTML | `--format html` | Interactive dashboard with visualizations |
+| TAP | `--format tap` | Test Anything Protocol format for CI integration |
 
-- **Markdown** - Text-based reports suitable for documentation or GitHub
-- **HTML** - Interactive visual reports with charts and formatting
-- **JSON** - Machine-readable data for integration with other tools
+## Viewing Reports
 
-## Basic Usage
-
-### Generating Reports
-
-After running a monitored Maven build, you can generate a report using the collected data:
-
-```bash
-# Generate a markdown report (default)
-mvnimble report -i ./mvnimble-results/data.json -o ./report.md -f markdown
-
-# Generate an HTML report
-mvnimble report -i ./mvnimble-results/data.json -o ./report.html -f html
-
-# Generate a JSON report
-mvnimble report -i ./mvnimble-results/data.json -o ./report.json -f json
-```
-
-### Report Command Options
-
-```
-Usage: mvnimble report [options]
-
-Generate reports from collected monitoring data
-
-Options:
-  -i, --input FILE    Input JSON file with monitoring data
-  -o, --output FILE   Output file for the report
-  -f, --format FMT    Output format: markdown, html, json (default: markdown)
-
-Example:
-  mvnimble report -i ./results/data.json -o ./report.html -f html
-```
-
-## Report Content
-
-### Build Monitoring Reports
-
-Build monitoring reports include:
-
-- **Build Summary** - Status, duration, and command information
-- **Test Results** - Total, passed, failed, and skipped tests
-- **Failure Details** - Information about build or test failures
-- **System Information** - OS, CPU, memory, and environment details
-
-### Analysis Reports
-
-Analysis reports include:
-
-- **Resource Binding Analysis** - CPU, memory, and I/O bottleneck detection
-- **Optimization Recommendations** - Environment-specific configuration suggestions
-- **Performance Metrics** - Execution time and resource utilization
-- **Visualizations** - Charts showing performance data (HTML reports only)
-
-## Examples
-
-### Workflow Example
-
-This example shows a complete workflow from monitoring to reporting:
+After running tests with MVNimble, reports are automatically generated in the `mvnimble-results` directory:
 
 ```bash
-# Step 1: Monitor a Maven build
-mvnimble monitor -o ./results -- mvn clean test
+# View default markdown report
+cat mvnimble-results/test_monitoring_report.md
 
-# Step 2: Analyze the build results
-mvnimble analyze -i ./results -o ./analysis.md
+# Generate HTML report from existing data
+mvnimble report --format html
 
-# Step 3: Generate a detailed HTML report
-mvnimble report -i ./results/data.json -o ./report.html -f html
+# Generate JSON report from existing data
+mvnimble report --format json
 ```
 
-### Sharing Reports
+## Understanding Report Sections
 
-Reports can be easily shared with your team:
+### 1. Test Summary
+
+Shows overall test statistics:
+- Total tests run
+- Pass/fail counts
+- Test duration
+- System resource overview
+
+### 2. Failing Tests
+
+Lists all failing tests with:
+- Test name
+- Error message
+- Failure type classification
+- Resource usage during failure
+
+### 3. Slow Tests
+
+Lists tests that took longer than expected:
+- Test name
+- Duration
+- Comparison to average duration
+- Resource usage correlation
+
+### 4. Resource Correlation
+
+Links test behavior to system resources:
+- CPU usage during test execution
+- Memory consumption patterns
+- I/O activity correlation
+- Thread contention analysis
+
+### 5. Recommendations
+
+Provides actionable suggestions:
+- Potential fixes for failing tests
+- Optimization ideas for slow tests
+- JVM configuration suggestions
+- Test isolation recommendations
+
+## Report Examples
+
+### Example: Identifying Memory-Related Failures
+
+```
+## Resource Correlation for UploadTest.testLargeFileUpload
+
+This test failed with OutOfMemoryError during heap allocation.
+
+Resource Analysis:
+- Memory: 92% usage (CRITICAL) at time of failure
+- Heap allocation rate: 25MB/sec (HIGH)
+- GC activity: 15 collections in 30 seconds before failure
+
+Recommendation:
+- Increase heap size with --jvm-opts="-Xmx2g"
+- Check for memory leaks in FileBufferManager class
+```
+
+### Example: Thread Contention Issue
+
+```
+## Resource Correlation for ConcurrentTest.testParallelProcessing
+
+This test is flaky, passing 3/5 runs.
+
+Resource Analysis:
+- Thread count: Peaks at 42 threads
+- Thread contention: HIGH on DatabaseConnectionPool
+- Deadlock detected between threads T24 and T36
+
+Recommendation:
+- Review thread synchronization in DatabaseConnectionPool
+- Consider increasing connection pool size
+- Add timeout to prevent deadlock condition
+```
+
+## Using Reports for QA Work
+
+1. **When filing bugs**:
+   - Attach the `data.json` file for complete information
+   - Include relevant sections from `test_monitoring_report.md`
+   - Highlight specific resource correlations that explain the failure
+
+2. **When investigating flaky tests**:
+   - Compare reports from multiple runs
+   - Look for resource patterns that differ between passing/failing runs
+   - Focus on thread activity and contention sections
+
+3. **For performance optimization**:
+   - Use the slow tests section to prioritize optimization work
+   - Look at resource usage to identify bottlenecks
+   - Try suggested JVM options and compare before/after reports
+
+## Customizing Reports
+
+You can customize report generation:
 
 ```bash
-# Generate an HTML report for sharing
-mvnimble report -i ./mvnimble-results/data.json -o ./public/report.html -f html
+# Generate report with only specific sections
+mvnimble report --format html --sections summary,failing,recommendations
 
-# Include reports in CI/CD pipelines
-mvnimble report -i ./mvnimble-results/data.json -o ./artifacts/report.json -f json
+# Change output location
+mvnimble report --format json --output-file ./my-reports/test-results.json
+
+# Include custom metrics in report
+mvnimble report --format markdown --include-metrics cpu,memory,threads
 ```
-
-## Integration with Other Tools
-
-The JSON reports can be integrated with other tools in your development workflow:
-
-- **CI/CD Pipelines** - Archive reports as build artifacts
-- **Dashboards** - Extract metrics for visualization
-- **Trend Analysis** - Track performance changes over time
-- **Custom Tools** - Process the JSON data for specific needs
-
-## Report Customization
-
-MVNimble includes some basic styling and templates for reports. For more advanced customization, you can:
-
-1. Use the JSON output format and build your own visualization
-2. Modify the report templates in the project's source code
-
-## Troubleshooting
-
-If you encounter issues with report generation:
-
-1. Verify the input data exists and is valid JSON
-2. Check write permissions for the output directory
-3. For HTML reports, ensure the report is being viewed in a modern browser
-
-For more help, see the [Troubleshooting Guide](./TROUBLESHOOTING.md).
-
----
-
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license

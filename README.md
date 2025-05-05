@@ -1,223 +1,75 @@
-# MVNimble: Maven Test Optimization Utility
+# MVNimble
 
-<p align="center">
-  <img src="doc/assets/mvnimble-logo.png" alt="MVNimble Logo" width="250"/>
-</p>
+MVNimble is a lightweight tool that helps QA engineers identify and diagnose flaky tests and build failures in Maven projects. It monitors test execution, collects diagnostic data, and generates reports to make troubleshooting easier.
 
-<p align="center">
-  <strong>Intelligent test cycle optimization for Maven projects</strong>
-</p>
+## Features
 
-<p align="center">
-  <a href="https://github.com/mvnimble/mvnimble/actions/workflows/ci-tests.yml">
-    <img src="https://github.com/mvnimble/mvnimble/actions/workflows/ci-tests.yml/badge.svg" alt="CI Tests">
-  </a>
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
-  </a>
-  <a href="https://github.com/mvnimble/mvnimble/releases">
-    <img src="https://img.shields.io/github/v/release/mvnimble/mvnimble" alt="Latest Release">
-  </a>
-  <a href="https://github.com/mvnimble/mvnimble/stargazers">
-    <img src="https://img.shields.io/github/stars/mvnimble/mvnimble" alt="Stars">
-  </a>
-</p>
+- **Test Monitoring**: Tracks test execution and resource usage
+- **Flaky Test Detection**: Identifies inconsistently passing tests
+- **Build Failure Analysis**: Diagnoses build failures and suggests fixes
+- **Resource Correlation**: Links test failures to system resource constraints
+- **Reporting**: Generates easy-to-understand reports in multiple formats
 
----
-
-## 🚀 Overview
-
-MVNimble is an intelligent Maven test optimization tool that automatically detects and resolves performance bottlenecks in Maven builds across different environments. It helps you run your tests faster, more reliably, and with better resource utilization.
-
-### Why MVNimble?
-
-- **Save Time**: Reduce your test execution time by up to 60% through smart parallelization and resource optimization
-- **Improve Reliability**: Detect flaky tests, thread safety issues, and environmental dependencies
-- **Simplify CI/CD**: Optimize your continuous integration pipeline with environment-specific configurations
-- **Get Insights**: Generate detailed reports to understand your test performance and resource utilization
-
-## ✨ Key Features
-
-- **📊 Environment Analysis** - Automatically detects your runtime environment (bare metal, container, or VM)
-- **🔍 Resource Binding Detection** - Identifies whether your tests are CPU-bound, memory-bound, or I/O-bound
-- **⚙️ Intelligent Configuration** - Recommends optimal Maven settings based on your specific environment
-- **🧵 Thread Safety Analysis** - Detects concurrency issues in your test suite
-- **🚀 Performance Optimization** - Provides specific recommendations to speed up your tests
-- **📈 Visual Reporting** - Generates interactive HTML reports with detailed metrics and charts
-
-## 📋 Table of Contents
-
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
-- [Usage Examples](#-usage-examples)
-- [Documentation](#-documentation)
-- [Testing](#-testing)
-- [Contributing](#-contributing)
-- [License](#-license)
-
-## 📥 Installation
-
-### Prerequisites
-
-- Bash 3.2+ (macOS or Linux)
-- Java 8+ and Maven 3.x for Maven project analysis
-
-### Quick Installation
+## Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/mvnimble/mvnimble.git
-
-# Run the installer - This will install MVNimble to ~/.mvnimble by default
-cd mvnimble
-./install.sh
-```
-
-### Installation Options
-
-```bash
-# Install to a custom location
-./install.sh --prefix=/path/to/install/dir
-
-# Skip automatic tests during installation
-./install.sh --skip-tests
-
-# Run only specific test categories
-./install.sh --test-tags functional,positive
-
-# Generate detailed test report during installation
-./install.sh --test-report
-
-# Install without symlinks (for environments where symlinks cause issues)
+# Quick installation
 ./install-simple.sh
+
+# Installation with additional diagnostic tools
+./install-with-fix.sh
 ```
 
-Make sure to add MVNimble to your PATH after installation:
+## Quick Start
+
+1. Navigate to your Maven project directory
+2. Run your tests with MVNimble monitoring:
 
 ```bash
-# Add to your ~/.bashrc or ~/.zshrc
-export PATH="$HOME/.mvnimble/bin:$PATH"
+mvnimble mvn test
 ```
 
-For detailed installation instructions, see our [Installation Guide](./doc/INSTALLATION.md).
-
-## 🏃 Quick Start
-
-MVNimble provides two different ways to analyze your Maven projects:
-
-### Using the Simple Project Analyzer
+3. View the generated report:
 
 ```bash
-# Navigate to your MVNimble installation directory
-cd mvnimble
-
-# Run the project analyzer on a Maven project
-bin/mvnimble-project /path/to/your/maven/project
-
-# Add options to customize the build
-bin/mvnimble-project /path/to/your/maven/project --clean --verify --threads=4
+cat mvnimble-results/test_monitoring_report.md
 ```
 
-### Using the Standard MVNimble Commands
+## Basic Usage
+
+MVNimble works by running in front of your normal Maven commands:
 
 ```bash
-# Navigate to your Maven project directory
-cd your-maven-project
+# Run tests with monitoring
+mvnimble mvn test
 
-# Monitor a build in real-time to detect bottlenecks
-mvnimble monitor -- mvn clean test
+# Run a specific test with monitoring
+mvnimble mvn -Dtest=SlowTest test
 
-# Analyze build results
-mvnimble analyze -i ./mvnimble-results
-
-# Generate a report in HTML format
-mvnimble report -i ./mvnimble-results/data.json -o ./report.html -f html
+# Run with custom JVM options
+mvnimble --jvm-opts="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError" mvn test
 ```
 
-## 📊 Usage Examples
+## Report Types
 
-### Basic Usage
+MVNimble generates reports in multiple formats:
 
-```bash
-# Monitor Maven test execution in real-time
-mvnimble monitor -- mvn clean test
+- Markdown (default): `test_monitoring_report.md`
+- JSON data: `data.json`
+- HTML dashboard: Generate with `mvnimble report --format html`
 
-# Analyze build results and get optimization recommendations
-mvnimble analyze -i ./mvnimble-results
+## More Information
 
-# Verify your environment is properly configured
-mvnimble verify
-```
+For more detailed information, see:
 
-### Advanced Usage
+- [Complete Installation Guide](./doc/INSTALLATION.md)
+- [Detailed Usage Guide](./doc/USAGE.md)
+- [Reporting Options](./doc/REPORTING.md)
+- [Troubleshooting Guide](./doc/TROUBLESHOOTING.md)
 
-```bash
-# Monitor with custom settings
-mvnimble monitor -o ./custom-results -i 10 -m 30 -- mvn clean test
+## Support
 
-# Use specialized monitoring script
-mvnimble-monitor -o ./results -- mvn clean test
-
-# Use specialized analysis script with HTML output
-mvnimble-analyze -i ./results -o ./analysis.html -f html -p ./custom-pom.xml
-
-# Use the project analyzer with specific Maven goals
-mvnimble-project /path/to/project --clean --verify --threads=2
-```
-
-For more usage examples, see our [Usage Guide](./doc/USAGE.md).
-
-## 📚 Documentation
-
-Complete documentation is available in the [doc directory](./doc/README.md). Key documents include:
-
-- [Installation Guide](./doc/INSTALLATION.md) - How to install MVNimble
-- [Usage Guide](./doc/USAGE.md) - How to use MVNimble effectively
-- [Reporting Guide](./doc/REPORTING.md) - How to generate and use reports
-- [Testing Guide](./doc/TESTING.md) - Testing approach and best practices
-- [Troubleshooting Guide](./doc/TROUBLESHOOTING.md) - Solutions to common issues
-- [Developer Guide](./doc/DEVELOPER-GUIDE.md) - For MVNimble developers
-- [Contributing Guide](./doc/CONTRIBUTING.md) - How to contribute to MVNimble
-
-## 🧪 Testing
-
-MVNimble includes a comprehensive test suite using BATS (Bash Automated Testing System):
-
-```bash
-# Run all tests
-./test/run_bats_tests.sh
-
-# Run tests with specific tags
-./test/run_bats_tests.sh --tags functional,positive
-
-# Generate a test report in markdown format
-./test/run_bats_tests.sh --report markdown
-
-# Run a quick test summary
-./test/test_summary.sh
-```
-
-Our tests are organized by category (functional vs. nonfunctional) and scenario (positive vs. negative). For more details on our testing approach, see [Testing Documentation](./doc/TESTING.md).
-
-## 👥 Contributing
-
-We welcome contributions of all kinds! Please see our [Contributing Guide](./doc/CONTRIBUTING.md) for details on:
-
-- Setting up your development environment
-- Coding conventions and standards
-- The pull request process
-- How to report bugs
-- How to suggest new features
-
-## 📄 License
-
-MVNimble is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  Made with ❤️ by the MVNimble team
-</p>
-
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+If you encounter any issues, please:
+1. Check the [Troubleshooting Guide](./doc/TROUBLESHOOTING.md)
+2. Look through existing GitHub issues
+3. Open a new issue with the test output and environment details

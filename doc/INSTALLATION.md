@@ -1,285 +1,151 @@
 # MVNimble Installation Guide
 
-This guide provides instructions for installing MVNimble on various platforms and environments.
-
-## Table of Contents
-
-1. [System Requirements](#system-requirements)
-2. [Quick Installation](#quick-installation)
-3. [Installation Without Symlinks](#installation-without-symlinks)
-4. [Manual Installation](#manual-installation)
-5. [Platform-Specific Notes](#platform-specific-notes)
-6. [Docker Installation](#docker-installation)
-7. [CI/CD Installation](#cicd-installation)
-8. [Troubleshooting](#troubleshooting)
+This guide covers how to install MVNimble on your system.
 
 ## System Requirements
 
-MVNimble has the following prerequisites:
+MVNimble works on:
+- **macOS** (10.15 Catalina or newer)
+- **Linux** (Ubuntu 18.04+, CentOS 7+, other modern distributions)
 
-- **Bash** 3.2 or newer
-- **Java** 8 or newer
-- **Maven** 3.3 or newer
-- **curl** or **wget** for the installation script
+### Dependencies
+
+MVNimble requires:
+- Bash 3.2 or newer
+- Maven 3.3 or newer
+- Java 8 or newer
+
+The following tools are recommended but will be installed automatically if missing:
+- jq (for JSON processing)
+- bc (for calculations)
+- grep, sed, awk (standard Unix tools)
 
 ## Quick Installation
 
-### From Github Repository
-
-The easiest way to install MVNimble is directly from the GitHub repository:
+For standard installations:
 
 ```bash
-# Clone the repository
-git clone https://github.com/mvnimble/mvnimble.git
-
-# Go to the cloned directory
-cd mvnimble
-
-# Run the installer (installs to ~/.mvnimble by default)
-./install.sh
-```
-
-This will:
-1. Install MVNimble to `~/.mvnimble` by default
-2. Create symlinks in `~/.local/bin`
-3. Offer to add MVNimble to your PATH by updating your shell profile
-
-### Using Custom Installation Options
-
-The MVNimble installer supports several options to customize the installation:
-
-```bash
-# Install to a custom location
-./install.sh --prefix=/path/to/install/dir
-
-# Perform system-wide installation (requires root)
-sudo ./install.sh --system
-
-# Skip running tests during installation
-./install.sh --skip-tests
-
-# Run only specific test categories
-./install.sh --test-tags=functional,positive
-
-# Generate test report during installation
-./install.sh --test-report
-
-# Run in non-interactive mode (for automated installations)
-./install.sh --non-interactive
-```
-
-### Verifying Installation
-
-After installation, verify that MVNimble is correctly installed:
-
-```bash
-mvnimble --version
-```
-
-You should see output like:
-```
-MVNimble v0.1.0
-```
-
-You can also verify the environment:
-
-```bash
-mvnimble verify
-```
-
-## Installation Without Symlinks
-
-In some environments, symbolic links may not be supported or may cause issues. MVNimble provides an alternative installation method that doesn't use symbolic links:
-
-```bash
-# Install without using symbolic links
+# Download and run the simple installer
 ./install-simple.sh
 ```
 
-This simplified installation:
-1. Installs MVNimble to `~/.mvnimble` by default (or any specified location)
-2. Creates direct wrapper scripts in `~/.local/bin` instead of symlinks
-3. Uses a more direct approach to find library files
+This will:
+1. Install MVNimble to `~/mvnimble` (or the current directory if run from git)
+2. Add MVNimble to your PATH in `.bashrc` or `.bash_profile`
+3. Check for required dependencies
 
-The simplified installation supports all the same options as the regular installer:
+## Installation with Diagnostic Tools
+
+For a more complete installation with additional diagnostic tools:
 
 ```bash
-# Install to a custom location without symlinks
-./install-simple.sh --prefix=/path/to/install/dir
-
-# System-wide installation without symlinks
-sudo ./install-simple.sh --system
+# Download and run the enhanced installer
+./install-with-fix.sh
 ```
 
-For more details about the simplified installation, see [Simplified Installation](SIMPLIFIED-INSTALLATION.md).
+This includes everything in the simple installation plus:
+1. Additional diagnostic utilities
+2. Thread dump analyzers
+3. Advanced resource monitoring capabilities
 
 ## Manual Installation
 
-If you prefer to install manually or the automatic installer doesn't work for your environment:
+If you prefer to install manually:
 
-### Step 1: Download the Latest Release
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/user/mvnimble.git
+   cd mvnimble
+   ```
 
-```bash
-# Create installation directory
-mkdir -p ~/.mvnimble
+2. Add to your PATH:
+   ```bash
+   echo 'export PATH="$PATH:$HOME/mvnimble/bin"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
 
-# Download latest release
-curl -L https://github.com/mvnimble/mvnimble/releases/latest/download/mvnimble.tar.gz -o /tmp/mvnimble.tar.gz
+3. Check installation:
+   ```bash
+   mvnimble --version
+   ```
 
-# Extract to installation directory
-tar -xzf /tmp/mvnimble.tar.gz -C ~/.mvnimble
-```
+## Verifying Your Installation
 
-### Step 2: Add to PATH
-
-Add the following to your shell profile (~/.bashrc, ~/.zshrc, etc.):
-
-```bash
-export PATH="$HOME/.mvnimble/bin:$PATH"
-```
-
-Then reload your shell configuration:
+To verify that MVNimble installed correctly:
 
 ```bash
-source ~/.bashrc  # or ~/.zshrc, etc.
+# Check if MVNimble is in your PATH
+which mvnimble
+
+# Check the version
+mvnimble --version
+
+# Test basic functionality
+mvnimble --help
 ```
 
-## Platform-Specific Notes
+## Troubleshooting Installation
 
-### macOS
+### Path Issues
 
-On macOS, you may need to install GNU utilities:
+If `mvnimble` command is not found:
+
+1. Check if it's in your PATH:
+   ```bash
+   echo $PATH | grep mvnimble
+   ```
+
+2. If not found, add it manually:
+   ```bash
+   echo 'export PATH="$PATH:$HOME/mvnimble/bin"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+### Missing Dependencies
+
+If you see dependency errors:
 
 ```bash
-# Using Homebrew
-brew install coreutils findutils gnu-sed
+# On macOS
+brew install jq bc coreutils
 
-# Update your PATH to use GNU tools
-echo 'export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"' >> ~/.zshrc
-echo 'export PATH="$(brew --prefix)/opt/findutils/libexec/gnubin:$PATH"' >> ~/.zshrc
-echo 'export PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"' >> ~/.zshrc
+# On Ubuntu/Debian
+sudo apt-get install jq bc
+
+# On CentOS/RHEL
+sudo yum install jq bc
 ```
 
-### Linux
+### Permission Issues
 
-MVNimble works out of the box on most Linux distributions. For minimal environments, ensure the following packages are installed:
+If you have permission errors:
 
 ```bash
-# Debian/Ubuntu
-sudo apt-get install bash curl tar gzip coreutils
-
-# CentOS/RHEL/Fedora
-sudo yum install bash curl tar gzip coreutils
+# Make the scripts executable
+chmod +x ~/mvnimble/bin/mvnimble
+chmod +x ~/mvnimble/lib/*.sh
 ```
 
-## Docker Installation
+## Uninstalling MVNimble
 
-MVNimble can be run in a Docker container:
+To uninstall:
 
 ```bash
-# Pull the MVNimble Docker image
-docker pull mvnimble/mvnimble:latest
+# Remove the directory
+rm -rf ~/mvnimble
 
-# Run MVNimble in a container
-docker run -v $(pwd):/workspace -w /workspace mvnimble/mvnimble:latest mvnimble analyze
+# Remove from PATH (edit your ~/.bashrc or ~/.bash_profile)
+# Look for the line with 'export PATH=...$HOME/mvnimble/bin' and remove it
 ```
 
-### Docker Compose Example
+## Next Steps
 
-```yaml
-version: '3'
-services:
-  mvnimble:
-    image: mvnimble/mvnimble:latest
-    volumes:
-      - ./:/workspace
-    working_dir: /workspace
-    command: mvnimble analyze
-```
+After installation:
 
-## CI/CD Installation
-
-### GitHub Actions
-
-```yaml
-steps:
-  - name: Install MVNimble
-    run: |
-      git clone https://github.com/mvnimble/mvnimble.git
-      cd mvnimble
-      ./install.sh --non-interactive
-  
-  - name: Add to PATH
-    run: echo "$HOME/.mvnimble/bin" >> $GITHUB_PATH
-```
-
-### Jenkins Pipeline
-
-```groovy
-pipeline {
-  agent any
-  stages {
-    stage('Install MVNimble') {
-      steps {
-        sh '''
-          git clone https://github.com/mvnimble/mvnimble.git
-          cd mvnimble
-          ./install.sh --non-interactive
-          export PATH="$HOME/.mvnimble/bin:$PATH"
-        '''
-      }
-    }
-  }
-}
-```
-
-### GitLab CI
-
-```yaml
-install_mvnimble:
-  script:
-    - git clone https://github.com/mvnimble/mvnimble.git
-    - cd mvnimble
-    - ./install.sh --non-interactive
-    - export PATH="$HOME/.mvnimble/bin:$PATH"
-```
-
-## Troubleshooting
-
-### Common Installation Issues
-
-| Problem | Solution |
-|---------|----------|
-| Permission denied | Use `sudo bash` with the installer or manually adjust permissions |
-| mvnimble command not found | Ensure ~/.mvnimble/bin is in your PATH |
-| Incompatible Bash version | Update Bash to 3.2 or newer |
-| Dependency missing | Install required dependencies (curl, tar, etc.) |
-
-### Detailed Error Logs
-
-For more detailed logs during installation:
-
-```bash
-bash -x install.sh
-```
-
-### Manual Uninstallation
-
-To completely remove MVNimble:
-
-```bash
-rm -rf ~/.mvnimble
-rm -f ~/.local/bin/mvnimble*
-```
-
-Then remove the PATH addition from your shell profile.
-
-### Support
-
-If you encounter issues not addressed here, please:
-
-1. Check the [GitHub issues](https://github.com/mvnimble/mvnimble/issues)
-2. Open a new issue if needed
-
----
-Copyright (C) 2025 Eric C. Mumford (@heymumford) Code covered by MIT license
+1. Read the [Usage Guide](./USAGE.md) to learn how to use MVNimble
+2. Try running MVNimble on a test project:
+   ```bash
+   cd /path/to/maven/project
+   mvnimble mvn test
+   ```
+3. Check out the generated reports in the `mvnimble-results` directory
